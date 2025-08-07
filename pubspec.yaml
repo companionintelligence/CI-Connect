@@ -7,13 +7,16 @@ environment:
   sdk: ^3.8.0
 
 dependencies:
-  bloc: ^9.0.0
+  api_client:
+    path: ./packages/api_client
+  app_core:
+    path: ./packages/app_core
+  app_ui:
+    path: ./packages/app_ui
   flutter:
     sdk: flutter
-  flutter_bloc: ^9.1.1
   flutter_localizations:
     sdk: flutter
-  intl: ^0.20.2
 
 dev_dependencies:
   bloc_test: ^10.0.0
