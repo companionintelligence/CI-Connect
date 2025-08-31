@@ -23,9 +23,12 @@ dependencies:
   google_sign_in_platform_interface: ^3.0.0
   google_sign_in_ios: ^6.1.0
   google_sign_in_android: ^7.0.3
+  json_annotation: ^4.8.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
   very_good_analysis: ^9.0.0
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
