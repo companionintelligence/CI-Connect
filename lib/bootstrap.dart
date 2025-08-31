@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:api_client/api_client.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
 
@@ -27,7 +28,28 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
 
   Bloc.observer = const AppBlocObserver();
 
-  // Add cross-flavor configuration here
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Initialize API Client with CI Server connectivity
+  try {
+    final apiClient = ApiClient(
+      firestore: FirebaseFirestore.instance,
+    );
+    
+    // Test CI Server connectivity during app startup
+    final isConnected = await apiClient.isConnectedToCiServer();
+    log('CI Server connectivity: ${isConnected ? "Connected" : "Not connected"}');
+    
+    if (isConnected) {
+      final status = await apiClient.getCiServerStatus();
+      if (status != null) {
+        log('CI Server status: $status');
+      }
+    }
+  } catch (e) {
+    log('Failed to initialize CI Server connectivity: $e');
+  }
 
   runApp(await builder());
 }
