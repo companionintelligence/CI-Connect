@@ -101,6 +101,19 @@ extension FirebaseFirestoreX on FirebaseFirestore {
   }) =>
       promotionsCollection(studioId).doc(promotionId);
 
+  CollectionReference<Map<String, dynamic>> notificationsCollection({
+    required String studioId,
+  }) =>
+      studioDoc(studioId).collection('notifications');
+  DocumentReference<Map<String, dynamic>> notificationDoc({
+    required String studioId,
+    required String notificationId,
+  }) =>
+      notificationsCollection(studioId: studioId).doc(notificationId);
+
+  Query<Map<String, dynamic>> notificationsCollectionGroup() =>
+      collectionGroup('notifications');
+
   Query<Map<String, dynamic>> bookingSessionsCollectionGroup() =>
       collectionGroup('sessions');
   CollectionReference<Map<String, dynamic>> bookingSessionsCollection({
