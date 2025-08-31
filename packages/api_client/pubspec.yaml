@@ -23,6 +23,11 @@ dependencies:
   google_sign_in_platform_interface: ^3.0.0
   google_sign_in_ios: ^6.1.0
   google_sign_in_android: ^7.0.3
+  # Voice and Audio dependencies
+  speech_to_text: ^7.0.0
+  just_audio: ^0.9.40
+  permission_handler: ^11.3.1
+  web_socket_channel: ^3.0.1
 
 dev_dependencies:
   flutter_test:
