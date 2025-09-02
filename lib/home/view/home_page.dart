@@ -74,15 +74,54 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
       ),
       body: _buildBody(context),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: _mobileDestinations,
-      ),
+      bottomNavigationBar: context.isLandscape 
+          ? null // Hide bottom nav in landscape mobile for more content space
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              destinations: _mobileDestinations,
+            ),
+      drawer: context.isLandscape 
+          ? Drawer(
+              child: ListView(
+                children: [
+                  const DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                    ),
+                    child: Text(
+                      'Companion Connect',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ),
+                  ..._mobileDestinations.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final destination = entry.value;
+                    return ListTile(
+                      leading: _selectedIndex == index 
+                          ? destination.selectedIcon 
+                          : destination.icon,
+                      title: Text(destination.label),
+                      selected: _selectedIndex == index,
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                    );
+                  }),
+                ],
+              ),
+            )
+          : null,
     );
   }
 
@@ -101,7 +140,12 @@ class _HomePageState extends State<HomePage> {
                 _selectedIndex = index;
               });
             },
-            labelType: NavigationRailLabelType.all,
+            // Use different label types based on screen space
+            labelType: context.isLandscape && context.screenWidth > 1200
+                ? NavigationRailLabelType.all
+                : context.isLandscape
+                    ? NavigationRailLabelType.selected
+                    : NavigationRailLabelType.all,
             destinations: _tabletDestinations,
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -156,9 +200,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTabletGrid(BuildContext context) {
+    // More sophisticated column count logic for different screen sizes
+    int crossAxisCount = 2; // Default for tablet portrait
+    if (context.isDesktop) {
+      crossAxisCount = context.isLandscape ? 4 : 3;
+    } else if (context.isTablet) {
+      crossAxisCount = context.isLandscape ? 3 : 2;
+    }
+    
     return Expanded(
       child: GridView.count(
-        crossAxisCount: context.isLandscape ? 4 : 2,
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         children: [
@@ -192,6 +244,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMobileList(BuildContext context) {
+    if (context.isLandscape) {
+      // Use a 2-column grid for mobile landscape
+      return Expanded(
+        child: GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          children: [
+            _buildFeatureCard(
+              context,
+              'Chat',
+              'Start a conversation with your AI companion',
+              Icons.chat_bubble_outline,
+            ),
+            _buildFeatureCard(
+              context,
+              'Learn',
+              'Discover new topics and expand your knowledge',
+              Icons.school_outlined,
+            ),
+            _buildFeatureCard(
+              context,
+              'Create',
+              'Generate content and ideas with AI assistance',
+              Icons.create_outlined,
+            ),
+            _buildFeatureCard(
+              context,
+              'Explore',
+              'Find new connections and communities',
+              Icons.explore_outlined,
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Original vertical list for mobile portrait
     return Expanded(
       child: ListView(
         children: [
@@ -228,41 +318,54 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFeatureCard(BuildContext context, String title, String description, IconData icon) {
-    return Card(
-      child: InkWell(
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title feature coming soon!')),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: context.isTabletOrLarger ? 48 : 32,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: context.isTabletOrLarger
-                    ? Theme.of(context).textTheme.titleLarge
-                    : Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-                maxLines: context.isTabletOrLarger ? 3 : 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+    // Adjust card height based on orientation and device type
+    double? cardHeight;
+    if (context.isMobile && context.isLandscape) {
+      cardHeight = 140; // Shorter cards for mobile landscape
+    } else if (context.isTabletOrLarger && context.isLandscape) {
+      cardHeight = 160; // Medium height for tablet landscape
+    }
+    
+    return SizedBox(
+      height: cardHeight,
+      child: Card(
+        child: InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title feature coming soon!')),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: context.isTabletOrLarger ? 48 : 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: context.isTabletOrLarger
+                      ? Theme.of(context).textTheme.titleLarge
+                      : Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                    maxLines: context.isMobile && context.isLandscape ? 2 : 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
