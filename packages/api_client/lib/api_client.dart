@@ -20,3 +20,6 @@ export 'package:google_sign_in_android/google_sign_in_android.dart'
     if (dart.library.io) 'package:google_sign_in_android/google_sign_in_android.dart';
 
 export 'src/api_client.dart';
+export 'src/firebase_extensions.dart';
+export 'src/models/models.dart';
+export 'src/services/services.dart';

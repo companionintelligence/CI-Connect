@@ -1,11 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'calendar_event.g.dart';
-
 /// {@template calendar_event}
 /// A calendar event entity that represents an event within a calendar.
 /// {@endtemplate}
-@JsonSerializable()
 class CalendarEvent {
   /// {@macro calendar_event}
   const CalendarEvent({
@@ -25,8 +20,28 @@ class CalendarEvent {
   });
 
   /// Creates a [CalendarEvent] instance from a JSON map.
-  factory CalendarEvent.fromJson(Map<String, dynamic> json) =>
-      _$CalendarEventFromJson(json);
+  factory CalendarEvent.fromJson(Map<String, dynamic> json) {
+    return CalendarEvent(
+      id: json['id'] as String,
+      calendarId: json['calendarId'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      startTime: DateTime.parse(json['startTime'] as String),
+      endTime: DateTime.parse(json['endTime'] as String),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      location: json['location'] as String?,
+      attendees: (json['attendees'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      source: json['source'] as String,
+      sourceEventId: json['sourceEventId'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+    );
+  }
 
   /// The unique identifier of the calendar event.
   final String id;
@@ -68,7 +83,23 @@ class CalendarEvent {
   final DateTime? updatedAt;
 
   /// Converts the [CalendarEvent] instance to a JSON map.
-  Map<String, dynamic> toJson() => _$CalendarEventToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'calendarId': calendarId,
+      'title': title,
+      'description': description,
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
+      'isAllDay': isAllDay,
+      'location': location,
+      'attendees': attendees,
+      'source': source,
+      'sourceEventId': sourceEventId,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
 
   /// Creates a copy of this [CalendarEvent] with the given fields replaced.
   CalendarEvent copyWith({
