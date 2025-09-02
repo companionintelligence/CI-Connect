@@ -1,8 +1,12 @@
-import 'package:api_client/src/notification_service.dart';
-import 'package:dio/dio.dart';
-
 /// {@template api_client}
 /// API Client for CI-Connect that integrates with CI-Server endpoints.
+import 'package:api_client/src/notification_service.dart';
+import 'package:dio/dio.dart';
+import 'ci_server_client.dart';
+
+/// {@template api_client}
+/// CI Server API client for Companion Intelligence connectivity.
+
 /// {@endtemplate}
 class ApiClient {
   /// Creates an instance of [ApiClient].
@@ -29,5 +33,344 @@ class ApiClient {
   /// Generate a unique ID (replaces Firebase document ID generation)
   String generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
+    required String baseUrl,
+    String? apiKey,
+    Dio? dio,
+  }) : _ciServerClient = CIServerClient(
+          dio: dio ?? Dio(),
+          baseUrl: baseUrl,
+          apiKey: apiKey,
+        );
+
+  final CIServerClient _ciServerClient;
+
+  /// Gets the CI-Server client instance
+  CIServerClient get ciServerClient => _ciServerClient;
+
+  /// Generates a new unique ID
+  String generateId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = (timestamp * 1000 + DateTime.now().microsecond) % 1000000;
+    return '${timestamp}_$random';
+    String? ciServerBaseUrl,
+    Dio? httpClient,
+  })  : _ciServerBaseUrl = ciServerBaseUrl ?? 'https://api.companion-intelligence.com',
+        _dio = httpClient ?? Dio();
+
+  final String _ciServerBaseUrl;
+  final Dio _dio;
+
+  /// Checks if CI Server is reachable.
+  Future<bool> isConnectedToCiServer() async {
+    try {
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/health',
+        options: Options(
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Gets CI Server status information.
+  Future<Map<String, dynamic>?> getCiServerStatus() async {
+    try {
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/status',
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Sends data to CI Server.
+  Future<bool> sendDataToCiServer(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/data',
+        data: data,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // CI Server API Endpoints
+
+  /// Gets people data from CI Server.
+  Future<List<Map<String, dynamic>>?> getPeople({
+    int? limit,
+    String? search,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (search != null) queryParams['search'] = search;
+
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/people',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates or updates a person in CI Server.
+  Future<Map<String, dynamic>?> createPerson(Map<String, dynamic> personData) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/people',
+        data: personData,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Gets places data from CI Server.
+  Future<List<Map<String, dynamic>>?> getPlaces({
+    int? limit,
+    String? search,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (search != null) queryParams['search'] = search;
+
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/places',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates or updates a place in CI Server.
+  Future<Map<String, dynamic>?> createPlace(Map<String, dynamic> placeData) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/places',
+        data: placeData,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Gets content data from CI Server.
+  Future<List<Map<String, dynamic>>?> getContent({
+    int? limit,
+    String? search,
+    String? type,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (search != null) queryParams['search'] = search;
+      if (type != null) queryParams['type'] = type;
+
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/content',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates or updates content in CI Server.
+  Future<Map<String, dynamic>?> createContent(Map<String, dynamic> contentData) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/content',
+        data: contentData,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Gets contact data from CI Server.
+  Future<List<Map<String, dynamic>>?> getContact({
+    int? limit,
+    String? search,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (search != null) queryParams['search'] = search;
+
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/contact',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates or updates contact in CI Server.
+  Future<Map<String, dynamic>?> createContact(Map<String, dynamic> contactData) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/contact',
+        data: contactData,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Gets things data from CI Server.
+  Future<List<Map<String, dynamic>>?> getThings({
+    int? limit,
+    String? search,
+    String? category,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (search != null) queryParams['search'] = search;
+      if (category != null) queryParams['category'] = category;
+
+      final response = await _dio.get(
+        '$_ciServerBaseUrl/api/things',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        options: Options(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates or updates a thing in CI Server.
+  Future<Map<String, dynamic>?> createThing(Map<String, dynamic> thingData) async {
+    try {
+      final response = await _dio.post(
+        '$_ciServerBaseUrl/api/things',
+        data: thingData,
+        options: Options(
+          contentType: Headers.jsonContentType,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }
