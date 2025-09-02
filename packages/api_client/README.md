@@ -1,10 +1,51 @@
-# Api Client
+# CI-Server API Client
 
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: MIT][license_badge]][license_link]
 
-A Very Good Project created by Very Good CLI.
+A Dart API client for the CI-Server backend, providing access to people, places, content, contact, and things endpoints.
+
+## Features
+
+- ✅ Full CRUD operations for all CI-Server endpoints
+- ✅ Type-safe models for all data structures
+- ✅ Built-in error handling with descriptive exceptions
+- ✅ File upload support for content
+- ✅ Clean, maintainable code without code generation dependencies
+
+## Endpoints Supported
+
+- **People** - Manage person records
+- **Places** - Location and venue data
+- **Content** - File and media content management
+- **Contact** - Contact information management  
+- **Things** - IoT devices and object data
+
+## Usage
+
+```dart
+import 'package:api_client/api_client.dart';
+
+// Initialize the client
+final apiClient = ApiClient(baseUrl: 'https://your-ci-server.com/api');
+
+// Fetch people
+final people = await apiClient.getPeople();
+
+// Create a new person
+final person = Person(
+  id: 'new-id',
+  name: 'John Doe',
+  email: 'john@example.com',
+);
+final createdPerson = await apiClient.createPerson(person);
+
+// Upload content
+final content = await apiClient.uploadContent(
+  '/path/to/file.jpg',
+  {'title': 'My Photo', 'category': 'image'},
+);
+```
 
 ## Installation 💻
 
