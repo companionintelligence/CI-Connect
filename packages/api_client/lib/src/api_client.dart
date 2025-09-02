@@ -1,10 +1,8 @@
 /// {@template api_client}
 /// API Client for CI-Connect that integrates with CI-Server endpoints.
 /// {@endtemplate}
-import 'package:api_client/src/notification_service.dart';
 import 'package:api_client/src/services/services.dart';
 import 'package:dio/dio.dart';
-import 'ci_server_client.dart';
 
 /// {@template api_client}
 /// CI Server API client for Companion Intelligence connectivity.
@@ -24,14 +22,6 @@ class ApiClient {
   final String _ciServerBaseUrl;
   final Dio _dio;
   final CalendarSyncService _calendarSyncService;
-
-  /// Creates a notification service instance for CI-Server API.
-  NotificationService createNotificationService() {
-    return NotificationService(
-      baseUrl: _ciServerBaseUrl,
-      dio: _dio,
-    );
-  }
 
   /// Get CI-Server base URL
   String get ciServerBaseUrl => _ciServerBaseUrl;

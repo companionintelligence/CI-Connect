@@ -31,9 +31,9 @@ void main() {
         expect(result[1].lastSyncedAt, isNotNull);
 
         // Verify calendars were created (after update failed)
-        verify(() => mockApiClient.create('content/calendars', any())).called(2);
+        verify(() => mockApiClient.create('api/content/calendars', any())).called(2);
         // Verify events were also synced for each calendar
-        verify(() => mockApiClient.create('content/calendar-events', any())).called(2);
+        verify(() => mockApiClient.create('api/content/calendar-events', any())).called(2);
       });
 
       test('throws CalendarSyncException on API error', () async {
@@ -66,9 +66,9 @@ void main() {
         expect(result.updatedAt, isNotNull);
 
         // Verify calendar was created
-        verify(() => mockApiClient.create('content/calendars', any())).called(1);
+        verify(() => mockApiClient.create('api/content/calendars', any())).called(1);
         // Verify events were synced
-        verify(() => mockApiClient.create('content/calendar-events', any())).called(1);
+        verify(() => mockApiClient.create('api/content/calendar-events', any())).called(1);
       });
 
       test('throws CalendarSyncException on API error', () async {
@@ -90,7 +90,7 @@ void main() {
     group('getCalendars', () {
       test('successfully retrieves calendars from API', () async {
         when(() => mockApiClient.getAll(
-          'content/calendars',
+          'api/content/calendars',
           queryParameters: any(named: 'queryParameters'),
         )).thenAnswer((_) async => [
           {
@@ -119,7 +119,7 @@ void main() {
         expect(result[1].isEnabled, isFalse);
 
         verify(() => mockApiClient.getAll(
-          'content/calendars',
+          'api/content/calendars',
           queryParameters: {'studio_id': 'studio-123'},
         )).called(1);
       });
@@ -140,7 +140,7 @@ void main() {
     group('getCalendarEvents', () {
       test('successfully retrieves calendar events from API', () async {
         when(() => mockApiClient.getAll(
-          'content/calendar-events',
+          'api/content/calendar-events',
           queryParameters: any(named: 'queryParameters'),
         )).thenAnswer((_) async => [
           {
@@ -174,7 +174,7 @@ void main() {
         expect(result[1].title, equals('Event 2'));
 
         verify(() => mockApiClient.getAll(
-          'content/calendar-events',
+          'api/content/calendar-events',
           queryParameters: {
             'studio_id': 'studio-123',
             'calendar_id': 'cal-123',
@@ -201,10 +201,10 @@ void main() {
     group('_syncCalendar', () {
       test('tries update first, then creates if update fails', () async {
         // First call to update fails (not found)
-        when(() => mockApiClient.update('content/calendars', any(), any()))
+        when(() => mockApiClient.update('api/content/calendars', any(), any()))
             .thenThrow(const CIServerApiException('Not found'));
         // Second call to create succeeds
-        when(() => mockApiClient.create('content/calendars', any()))
+        when(() => mockApiClient.create('api/content/calendars', any()))
             .thenAnswer((_) async => {'id': 'created-id'});
 
         await service.syncCalendar(
@@ -212,16 +212,16 @@ void main() {
           calendarId: 'cal-123',
         );
 
-        verify(() => mockApiClient.update('content/calendars', 'cal-123', any()))
+        verify(() => mockApiClient.update('api/content/calendars', 'cal-123', any()))
             .called(1);
-        verify(() => mockApiClient.create('content/calendars', any()))
+        verify(() => mockApiClient.create('api/content/calendars', any()))
             .called(1);
       });
 
       test('uses update when it succeeds', () async {
-        when(() => mockApiClient.update('content/calendars', any(), any()))
+        when(() => mockApiClient.update('api/content/calendars', any(), any()))
             .thenAnswer((_) async => {'id': 'updated-id'});
-        when(() => mockApiClient.create('content/calendar-events', any()))
+        when(() => mockApiClient.create('api/content/calendar-events', any()))
             .thenAnswer((_) async => {'id': 'event-id'});
 
         await service.syncCalendar(
@@ -229,9 +229,9 @@ void main() {
           calendarId: 'cal-123',
         );
 
-        verify(() => mockApiClient.update('content/calendars', 'cal-123', any()))
+        verify(() => mockApiClient.update('api/content/calendars', 'cal-123', any()))
             .called(1);
-        verifyNever(() => mockApiClient.create('content/calendars', any()));
+        verifyNever(() => mockApiClient.create('api/content/calendars', any()));
       });
     });
   });

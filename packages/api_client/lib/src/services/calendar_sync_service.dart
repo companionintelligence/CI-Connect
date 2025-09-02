@@ -85,7 +85,7 @@ class CalendarSyncService {
       // Using the 'content' endpoint as it's one of the mentioned CI-Server endpoints
       // and calendars are a type of content
       final response = await _apiClient.getAll(
-        'content/calendars',
+        'api/content/calendars',
         queryParameters: {'studio_id': studioId},
       );
 
@@ -105,7 +105,7 @@ class CalendarSyncService {
     try {
       // Using the 'content' endpoint for calendar events
       final response = await _apiClient.getAll(
-        'content/calendar-events',
+        'api/content/calendar-events',
         queryParameters: {
           'studio_id': studioId,
           'calendar_id': calendarId,
@@ -181,13 +181,13 @@ class CalendarSyncService {
     try {
       // Try to update existing calendar first
       await _apiClient.update(
-        'content/calendars',
+        'api/content/calendars',
         calendar.id,
         calendarData,
       );
     } on CIServerApiException {
       // If update fails, try to create new calendar
-      await _apiClient.create('content/calendars', calendarData);
+      await _apiClient.create('api/content/calendars', calendarData);
     }
 
     return updatedCalendar;
@@ -213,13 +213,13 @@ class CalendarSyncService {
       try {
         // Try to update existing event first
         await _apiClient.update(
-          'content/calendar-events',
+          'api/content/calendar-events',
           event.id,
           eventData,
         );
       } on CIServerApiException {
         // If update fails, try to create new event
-        await _apiClient.create('content/calendar-events', eventData);
+        await _apiClient.create('api/content/calendar-events', eventData);
       }
     }
   }
