@@ -22,9 +22,7 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
   @override
   void initState() {
     super.initState();
-    _apiClient = ApiClient(
-      firestore: FirebaseFirestore.instance,
-    );
+    _apiClient = ApiClient();
     _checkConnection();
   }
 
@@ -85,6 +83,47 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
       setState(() {
         _isLoading = false;
         _lastMessage = 'Error sending data: $e';
+      });
+    }
+  }
+
+  Future<void> _testApiEndpoints() async {
+    setState(() {
+      _isLoading = true;
+      _lastMessage = 'Testing CI Server API endpoints...';
+    });
+
+    try {
+      final messages = <String>[];
+      
+      // Test People API
+      final people = await _apiClient.getPeople(limit: 3);
+      messages.add('People API: ${people != null ? "Success (${people.length} items)" : "Failed"}');
+      
+      // Test Places API
+      final places = await _apiClient.getPlaces(limit: 3);
+      messages.add('Places API: ${places != null ? "Success (${places.length} items)" : "Failed"}');
+      
+      // Test Content API
+      final content = await _apiClient.getContent(limit: 3);
+      messages.add('Content API: ${content != null ? "Success (${content.length} items)" : "Failed"}');
+      
+      // Test Contact API
+      final contact = await _apiClient.getContact(limit: 3);
+      messages.add('Contact API: ${contact != null ? "Success (${contact.length} items)" : "Failed"}');
+      
+      // Test Things API
+      final things = await _apiClient.getThings(limit: 3);
+      messages.add('Things API: ${things != null ? "Success (${things.length} items)" : "Failed"}');
+
+      setState(() {
+        _isLoading = false;
+        _lastMessage = messages.join('\n');
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _lastMessage = 'Error testing endpoints: $e';
       });
     }
   }
@@ -155,6 +194,12 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
               icon: const Icon(Icons.send),
               label: const Text('Send Test Data'),
             ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: _isLoading || !_isConnected ? null : _testApiEndpoints,
+              icon: const Icon(Icons.api),
+              label: const Text('Test API Endpoints'),
+            ),
             const SizedBox(height: 16),
             Card(
               child: Padding(
@@ -180,7 +225,13 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
                         ],
                       )
                     else
-                      Text(_lastMessage),
+                      SelectableText(
+                        _lastMessage,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                      ),
                   ],
                 ),
               ),

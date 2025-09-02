@@ -28,14 +28,9 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
 
   Bloc.observer = const AppBlocObserver();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
-
   // Initialize API Client with CI Server connectivity
   try {
-    final apiClient = ApiClient(
-      firestore: FirebaseFirestore.instance,
-    );
+    final apiClient = ApiClient();
     
     // Test CI Server connectivity during app startup
     final isConnected = await apiClient.isConnectedToCiServer();

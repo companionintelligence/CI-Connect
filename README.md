@@ -1,9 +1,52 @@
-# PRIVATE AND CON
-
 # Companion Connect
 
-## WIP Companion Native App
-  
+## CI Server Connectivity App
+
+A Flutter application that provides seamless connectivity to the Companion Intelligence Server, enabling mobile and desktop data synchronization and interaction.
+
+## Features
+
+- **CI Server Integration**: Direct HTTP API connectivity to Companion Intelligence Server
+- **Real-time Connectivity Testing**: Health checks and status monitoring
+- **Comprehensive API Support**: Full coverage of CI Server endpoints:
+  - **People**: Manage contacts and user information
+  - **Places**: Location and venue management
+  - **Content**: Document and media handling
+  - **Contact**: Communication endpoints
+  - **Things**: Object and item tracking
+- **Cross-platform**: Works on iOS, Android, Web, and Windows
+- **Offline-aware**: Graceful handling of network connectivity issues
+
+## API Client Usage
+
+```dart
+import 'package:api_client/api_client.dart';
+
+// Initialize the API client
+final apiClient = ApiClient(
+  ciServerBaseUrl: 'https://your-ci-server.com', // Optional, defaults to official server
+);
+
+// Test connectivity
+final isConnected = await apiClient.isConnectedToCiServer();
+if (isConnected) {
+  print('Connected to CI Server!');
+}
+
+// Use API endpoints
+final people = await apiClient.getPeople(limit: 10);
+final places = await apiClient.getPlaces(search: 'office');
+final content = await apiClient.getContent(type: 'document');
+final contacts = await apiClient.getContact(limit: 5);
+final things = await apiClient.getThings(category: 'electronics');
+
+// Create new data
+await apiClient.createPerson({'name': 'John Doe', 'email': 'john@example.com'});
+await apiClient.createPlace({'name': 'Office', 'address': '123 Main St'});
+await apiClient.createContent({'title': 'New Doc', 'type': 'document'});
+await apiClient.createContact({'name': 'Support', 'email': 'support@example.com'});
+await apiClient.createThing({'name': 'Laptop', 'category': 'electronics'});
+```
 ---
 
 ## Getting Started 🚀
