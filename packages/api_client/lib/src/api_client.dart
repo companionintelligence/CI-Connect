@@ -1,13 +1,39 @@
+/// {@template api_client}
+/// API Client for CI-Connect that integrates with CI-Server endpoints.
+import 'package:api_client/src/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'models/models.dart';
 
 /// {@template api_client}
 /// CI-Connect API Client for CI-Server integration.
 /// Provides access to people, places, content, contact, and things endpoints.
+
 /// {@endtemplate}
 class ApiClient {
   /// Creates an instance of [ApiClient].
   ApiClient({
+    String? ciServerUrl,
+    Dio? dio,
+  }) : _ciServerUrl = ciServerUrl ?? 'https://api.ci-server.com',
+       _dio = dio ?? Dio();
+
+  final String _ciServerUrl;
+  final Dio _dio;
+
+  /// Creates a notification service instance for CI-Server API.
+  NotificationService createNotificationService() {
+    return NotificationService(
+      baseUrl: _ciServerUrl,
+      dio: _dio,
+    );
+  }
+
+  /// Get CI-Server base URL
+  String get ciServerUrl => _ciServerUrl;
+
+  /// Generate a unique ID (replaces Firebase document ID generation)
+  String generateId() {
+    return DateTime.now().millisecondsSinceEpoch.toString();
     required String baseUrl,
     Dio? dio,
   }) : _dio = dio ?? Dio() {
@@ -389,7 +415,8 @@ class ApiException implements Exception {
 
   @override
   String toString() => 'ApiException: $message';
-=======
+  
+  
     String? apiKey,
     Dio? dio,
   }) : _ciServerClient = CIServerClient(
@@ -729,5 +756,4 @@ class ApiException implements Exception {
       return null;
     }
   }
->>>>>>> main
 }
