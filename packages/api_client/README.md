@@ -4,7 +4,7 @@
 [![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: MIT][license_badge]][license_link]
 
-A Very Good Project created by Very Good CLI.
+A comprehensive API client for Companion Intelligence applications, providing Firebase integration and CI Server connectivity.
 
 ## Installation 💻
 
@@ -14,6 +14,63 @@ Install via `flutter pub add`:
 
 ```sh
 dart pub add api_client
+```
+
+## Features 🚀
+
+- **Firebase Integration**: Complete Firebase suite including Firestore, Auth, Storage, Analytics, and more
+- **CI Server Connectivity**: HTTP client for connecting to Companion Intelligence servers
+- **Cross-platform Support**: Works on iOS, Android, Web, and Desktop platforms
+- **Type Safety**: Full Dart type safety with comprehensive error handling
+
+## Usage 📖
+
+### Basic Setup
+
+```dart
+import 'package:api_client/api_client.dart';
+
+// Create an instance with Firebase
+final apiClient = ApiClient(
+  firestore: FirebaseFirestore.instance,
+);
+
+// Or with custom CI Server URL
+final apiClient = ApiClient(
+  firestore: FirebaseFirestore.instance,
+  ciServerBaseUrl: 'https://your-ci-server.com',
+);
+```
+
+### CI Server Operations
+
+```dart
+// Check if CI Server is reachable
+final isConnected = await apiClient.isConnectedToCiServer();
+
+// Get CI Server status
+final status = await apiClient.getCiServerStatus();
+if (status != null) {
+  print('CI Server version: ${status['version']}');
+}
+
+// Send data to CI Server
+final success = await apiClient.sendDataToCiServer({
+  'userId': 'user123',
+  'action': 'login',
+  'timestamp': DateTime.now().toIso8601String(),
+});
+```
+
+### Firebase Operations
+
+```dart
+// Generate a Firestore document ID
+final docId = apiClient.generateId();
+
+// Use Firebase extensions for common operations
+final userRef = FirebaseFirestore.instance.userDoc('userId');
+final studioRef = FirebaseFirestore.instance.studioDoc('studioId');
 ```
 
 ---
