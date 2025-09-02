@@ -1,6 +1,8 @@
-/// API models for CI-Server integration and contacts sync functionality
+/// API models 
 library;
 
+export 'calendar.dart';
+export 'calendar_event.dart';
 export 'person.dart';
 export 'place.dart';
 export 'content.dart';

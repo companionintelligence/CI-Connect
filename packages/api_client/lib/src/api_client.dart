@@ -12,13 +12,24 @@ import 'models/models.dart';
 class ApiClient {
   /// Creates an instance of [ApiClient].
   ApiClient({
-    String? ciServerUrl,
-    Dio? dio,
-  }) : _ciServerUrl = ciServerUrl ?? 'https://api.ci-server.com',
-       _dio = dio ?? Dio();
-
-  final String _ciServerUrl;
+    String? ciServerBaseUrl,
+    Dio? httpClient,
+  })  : _ciServerBaseUrl = ciServerBaseUrl ?? 'https://api.companion-intelligence.com',
+        _dio = httpClient ?? Dio(),
+        _calendarSyncService = CalendarSyncService(
+          apiClient: CIServerApiClient(
+            baseUrl: ciServerBaseUrl ?? 'https://api.companion-intelligence.com',
+          ),
+        );
+  final String _ciServerBaseUrl;
   final Dio _dio;
+  final CalendarSyncService _calendarSyncService;
+
+  /// Get CI-Server base URL
+  String get ciServerBaseUrl => _ciServerBaseUrl;
+
+  /// Gets the calendar sync service for managing calendar synchronization.
+  CalendarSyncService get calendarSync => _calendarSyncService;
 
   /// Creates a notification service instance for CI-Server API.
   NotificationService createNotificationService() {
