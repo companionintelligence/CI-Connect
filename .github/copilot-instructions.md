@@ -1,7 +1,7 @@
 # Copilot Instructions for Companion Connect
 
 ## Project Overview
-Companion Connect is a Flutter-based native mobile application built with Very Good CLI structure. This is a private and confidential project creating a companion app with multi-platform support (iOS, Android, Web, Windows).
+Companion Connect is a Flutter-based native mobile application built with Very Good CLI structure. This is a private and confidential project creating a companion app with multi-platform support (iOS, Android, Web, Windows, macOS, visionOS).
 
 ## Architecture & Structure
 
@@ -55,6 +55,11 @@ flutter run --flavor staging --target lib/main_staging.dart
 
 # Production flavor
 flutter run --flavor production --target lib/main_production.dart
+
+# Platform-specific runs
+flutter run -d macos --flavor development --target lib/main_development.dart
+flutter run -d chrome --flavor development --target lib/main_development.dart
+flutter run -d windows --flavor development --target lib/main_development.dart
 ```
 
 ### Dependencies
@@ -66,6 +71,13 @@ flutter run --flavor production --target lib/main_production.dart
 - Run `flutter run` to trigger automatic code generation
 - Generate localizations when adding new translations
 - Use build_runner for any additional code generation needs
+
+### Platform-Specific Considerations
+- **macOS**: Leverage native macOS capabilities while maintaining cross-platform consistency
+- **visionOS**: Consider spatial computing paradigms and immersive experience design patterns
+- **Mobile (iOS/Android)**: Optimize for touch interactions and mobile-first UX
+- **Web**: Ensure responsive design and web accessibility standards
+- **Windows**: Follow Windows design guidelines for desktop experiences
 
 ## Best Practices for AI Assistance
 
@@ -83,7 +95,7 @@ flutter run --flavor production --target lib/main_production.dart
 ### When Modifying Features
 - Maintain backwards compatibility across flavors
 - Update tests when changing business logic
-- Consider impact on all supported platforms (iOS, Android, Web, Windows)
+- Consider impact on all supported platforms (iOS, Android, Web, Windows, macOS, visionOS)
 - Follow existing naming conventions and file structure
 
 ### When Adding Dependencies
