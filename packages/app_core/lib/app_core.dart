@@ -12,3 +12,4 @@ export 'package:rxdart/rxdart.dart';
 export 'package:slugify/slugify.dart';
 
 export 'src/app_core.dart';
+export 'src/file_sync/file_sync.dart';
