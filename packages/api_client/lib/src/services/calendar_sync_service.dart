@@ -253,11 +253,12 @@ class CalendarSyncService {
   }
 
   /// Generates a unique ID for calendar and event entities.
+  static const int idLength = 20;
   String _generateId() {
     final random = Random();
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return String.fromCharCodes(
-      Iterable.generate(20, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+      Iterable.generate(idLength, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
     );
   }
 }
