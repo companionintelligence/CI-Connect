@@ -28,7 +28,7 @@ $ flutter run --flavor staging --target lib/main_staging.dart
 $ flutter run --flavor production --target lib/main_production.dart
 ```
 
-_\*Companion Connect works on iOS, Android, Web, and Windows._
+_\*Companion Connect works on iOS, Android, Web, Windows, and macOS._
 
 ---
 
@@ -100,7 +100,7 @@ Widget build(BuildContext context) {
 
 ### Adding Supported Locales
 
-Update the `CFBundleLocalizations` array in the `Info.plist` at `ios/Runner/Info.plist` to include the new locale.
+Update the `CFBundleLocalizations` array in the `Info.plist` files at `ios/Runner/Info.plist` and `macos/Runner/Info.plist` to include the new locale.
 
 ```xml
     ...
