@@ -1,5 +1,5 @@
 name: api_client
-description: CI Server API client for Companion Intelligence connectivity.
+description: CI-Server API Client for CI-Connect application.
 version: 0.1.0+1
 publish_to: none
 

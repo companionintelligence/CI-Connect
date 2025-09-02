@@ -1,10 +1,52 @@
-# Api Client
+# CI-Server API Client
 
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: MIT][license_badge]][license_link]
 
-A comprehensive API client for Companion Intelligence applications, providing Firebase integration and CI Server connectivity.
+<<<<<<< HEAD
+A Dart API client for the CI-Server backend, providing access to people, places, content, contact, and things endpoints.
+
+## Features
+
+- ✅ Full CRUD operations for all CI-Server endpoints
+- ✅ Type-safe models for all data structures
+- ✅ Built-in error handling with descriptive exceptions
+- ✅ File upload support for content
+- ✅ Clean, maintainable code without code generation dependencies
+
+## Endpoints Supported
+
+- **People** - Manage person records
+- **Places** - Location and venue data
+- **Content** - File and media content management
+- **Contact** - Contact information management  
+- **Things** - IoT devices and object data
+
+## Usage
+
+```dart
+import 'package:api_client/api_client.dart';
+
+// Initialize the client
+final apiClient = ApiClient(baseUrl: 'https://your-ci-server.com/api');
+
+// Fetch people
+final people = await apiClient.getPeople();
+
+// Create a new person
+final person = Person(
+  id: 'new-id',
+  name: 'John Doe',
+  email: 'john@example.com',
+);
+final createdPerson = await apiClient.createPerson(person);
+
+// Upload content
+final content = await apiClient.uploadContent(
+  '/path/to/file.jpg',
+  {'title': 'My Photo', 'category': 'image'},
+);
+```
 
 ## Installation 💻
 
@@ -18,10 +60,10 @@ dart pub add api_client
 
 ## Features 🚀
 
-- **Firebase Integration**: Complete Firebase suite including Firestore, Auth, Storage, Analytics, and more
-- **CI Server Connectivity**: HTTP client for connecting to Companion Intelligence servers
-- **Cross-platform Support**: Works on iOS, Android, Web, and Desktop platforms
+- **CI-Server Integration**: Complete API client for all CI-Server endpoints (people, places, content, contact, things)
 - **Type Safety**: Full Dart type safety with comprehensive error handling
+- **Cross-platform Support**: Works on iOS, Android, Web, and Desktop platforms
+- **File Upload Support**: Native file sync and upload capabilities
 
 ## Usage 📖
 
@@ -30,47 +72,41 @@ dart pub add api_client
 ```dart
 import 'package:api_client/api_client.dart';
 
-// Create an instance with Firebase
+// Create an instance
 final apiClient = ApiClient(
-  firestore: FirebaseFirestore.instance,
-);
-
-// Or with custom CI Server URL
-final apiClient = ApiClient(
-  firestore: FirebaseFirestore.instance,
-  ciServerBaseUrl: 'https://your-ci-server.com',
+  baseUrl: 'https://your-ci-server.com',
 );
 ```
 
-### CI Server Operations
+### CI-Server API Operations
 
 ```dart
-// Check if CI Server is reachable
-final isConnected = await apiClient.isConnectedToCiServer();
+// People API
+final people = await apiClient.getPeople();
+final person = await apiClient.createPerson(Person(
+  name: 'John Doe',
+  email: 'john@example.com',
+));
 
-// Get CI Server status
-final status = await apiClient.getCiServerStatus();
-if (status != null) {
-  print('CI Server version: ${status['version']}');
-}
+// Places API
+final places = await apiClient.getPlaces();
+final place = await apiClient.createPlace(Place(
+  name: 'Office',
+  address: '123 Main St',
+));
 
-// Send data to CI Server
-final success = await apiClient.sendDataToCiServer({
-  'userId': 'user123',
-  'action': 'login',
-  'timestamp': DateTime.now().toIso8601String(),
-});
-```
+// Content API - File Upload
+final uploadResult = await apiClient.uploadContent(
+  filePath: '/path/to/file.pdf',
+  fileName: 'document.pdf',
+  contentType: 'application/pdf',
+);
 
-### Firebase Operations
+// Contact API
+final contacts = await apiClient.getContacts();
 
-```dart
-// Generate a Firestore document ID
-final docId = apiClient.generateId();
-
-// Use Firebase extensions for common operations
-final userRef = FirebaseFirestore.instance.userDoc('userId');
-final studioRef = FirebaseFirestore.instance.studioDoc('studioId');
+// Things API (IoT devices)
+final things = await apiClient.getThings();
 ```
 
 ---

@@ -1,5 +1,5 @@
 name: app_core
-description: A Very Good Project created by Very Good CLI.
+description: Core functionality for CI-Connect application including file sync.
 version: 0.1.0+1
 publish_to: none
 
@@ -8,6 +8,8 @@ environment:
   flutter: ^3.32.0
 
 dependencies:
+  api_client:
+    path: ../api_client
   bloc: ^9.0.0
   collection: ^1.19.0
   equatable: ^2.0.7
@@ -15,7 +17,8 @@ dependencies:
     sdk: flutter
   formz: ^0.8.0
   intl: ^0.20.2
-  json_annotation: ^4.9.0
+  path: ^1.9.0
+  path_provider: ^2.1.4
   permission_handler: ^12.0.1
   rxdart: ^0.28.0
   slugify: ^2.0.0
