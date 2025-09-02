@@ -3,6 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 
+<<<<<<< HEAD
 A Dart API client for the CI-Server backend, providing access to people, places, content, contact, and things endpoints.
 
 ## Features
@@ -55,6 +56,57 @@ Install via `flutter pub add`:
 
 ```sh
 dart pub add api_client
+```
+
+## Features 🚀
+
+- **CI-Server Integration**: Complete API client for all CI-Server endpoints (people, places, content, contact, things)
+- **Type Safety**: Full Dart type safety with comprehensive error handling
+- **Cross-platform Support**: Works on iOS, Android, Web, and Desktop platforms
+- **File Upload Support**: Native file sync and upload capabilities
+
+## Usage 📖
+
+### Basic Setup
+
+```dart
+import 'package:api_client/api_client.dart';
+
+// Create an instance
+final apiClient = ApiClient(
+  baseUrl: 'https://your-ci-server.com',
+);
+```
+
+### CI-Server API Operations
+
+```dart
+// People API
+final people = await apiClient.getPeople();
+final person = await apiClient.createPerson(Person(
+  name: 'John Doe',
+  email: 'john@example.com',
+));
+
+// Places API
+final places = await apiClient.getPlaces();
+final place = await apiClient.createPlace(Place(
+  name: 'Office',
+  address: '123 Main St',
+));
+
+// Content API - File Upload
+final uploadResult = await apiClient.uploadContent(
+  filePath: '/path/to/file.pdf',
+  fileName: 'document.pdf',
+  contentType: 'application/pdf',
+);
+
+// Contact API
+final contacts = await apiClient.getContacts();
+
+// Things API (IoT devices)
+final things = await apiClient.getThings();
 ```
 
 ---

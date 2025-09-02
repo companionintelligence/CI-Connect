@@ -1,6 +1,7 @@
 // Not required for test files
 // ignore_for_file: prefer_const_constructors
 
+<<<<<<< HEAD
 import 'package:api_client/api_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -121,5 +122,7 @@ void main() {
       expect(fromJson.name, equals(thing.name));
       expect(fromJson.category, equals(thing.category));
     });
+  });
+}    });
   });
 }
