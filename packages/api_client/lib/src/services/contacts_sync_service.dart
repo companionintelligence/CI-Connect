@@ -80,8 +80,21 @@ class ContactsSyncService {
       final contacts = await _ciServerClient.getContacts(studioId: studioId);
 
       for (final contactData in contacts) {
-        final contactId = contactData['id'] as String? ?? 
-                         contactData['contactId'] as String;
+        final contactId = contactData['id'] as String? ??
+            contactData['contactId'] as String?;
+        if (contactId == null) {
+          // Skip this contact or add a failed sync result due to missing ID
+          final failedSyncData = ContactSyncData(
+            contactId: '',
+            studioId: studioId,
+            lastSyncTime: DateTime.now(),
+            healthData: const [],
+            syncStatus: ContactSyncStatus.failed,
+            errorMessage: 'Missing contact ID in contact data: $contactData',
+          );
+          results.add(failedSyncData);
+          continue;
+        }
         
         try {
           // Get health data for this contact
