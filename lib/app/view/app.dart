@@ -1,4 +1,5 @@
 import 'package:companion_connect/l10n/l10n.dart';
+import 'package:companion_connect/notifications/notification_demo_page.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
@@ -15,7 +16,7 @@ class App extends StatelessWidget {
       ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Placeholder(),
+      home: const NotificationDemoPage(),
     );
   }
 }
