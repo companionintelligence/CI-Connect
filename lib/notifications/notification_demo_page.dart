@@ -24,7 +24,6 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
     try {
       // Create API client with CI-Server URL
       final apiClient = ApiClient(
-        firestore: FirebaseFirestore.instance,
         ciServerUrl: 'https://api.ci-server.example.com', // Replace with actual URL
       );
       
