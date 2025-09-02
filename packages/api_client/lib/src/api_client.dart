@@ -2,9 +2,6 @@ import 'package:dio/dio.dart';
 import 'ci_server_client.dart';
 
 /// {@template api_client}
-/// HTTP API client for CI-Server communication
-
-/// {@template api_client}
 /// CI Server API client for Companion Intelligence connectivity.
 /// {@endtemplate}
 class ApiClient {
