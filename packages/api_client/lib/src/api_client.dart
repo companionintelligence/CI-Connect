@@ -1,15 +1,31 @@
-import 'package:api_client/src/firebase_extensions.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
+
+import 'ci_server_client.dart';
 
 /// {@template api_client}
-/// A Very Good Project created by Very Good CLI.
+/// HTTP API client for CI-Server communication
 /// {@endtemplate}
 class ApiClient {
   /// Creates an instance of [ApiClient].
-  ApiClient({required FirebaseFirestore firestore}) : _firestore = firestore;
+  ApiClient({
+    required String baseUrl,
+    String? apiKey,
+    Dio? dio,
+  }) : _ciServerClient = CIServerClient(
+          dio: dio ?? Dio(),
+          baseUrl: baseUrl,
+          apiKey: apiKey,
+        );
 
-  final FirebaseFirestore _firestore;
+  final CIServerClient _ciServerClient;
 
-  /// Generates a new firestore document ID.
-  String generateId() => _firestore.generateId();
+  /// Gets the CI-Server client instance
+  CIServerClient get ciServerClient => _ciServerClient;
+
+  /// Generates a new unique ID
+  String generateId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = (timestamp * 1000 + DateTime.now().microsecond) % 1000000;
+    return '${timestamp}_$random';
+  }
 }

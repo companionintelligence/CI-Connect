@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../firebase_extensions.dart';
+import '../ci_server_client.dart';
 import '../models/models.dart';
 
 /// {@template contacts_sync_service}
@@ -10,10 +9,10 @@ import '../models/models.dart';
 class ContactsSyncService {
   /// {@macro contacts_sync_service}
   ContactsSyncService({
-    required FirebaseFirestore firestore,
-  }) : _firestore = firestore;
+    required CIServerClient ciServerClient,
+  }) : _ciServerClient = ciServerClient;
 
-  final FirebaseFirestore _firestore;
+  final CIServerClient _ciServerClient;
 
   /// Syncs health data for a specific contact
   Future<ContactSyncData> syncContactHealthData({
@@ -30,11 +29,18 @@ class ContactsSyncService {
     );
 
     try {
-      // Store sync data in Firestore
-      await _storeContactSyncData(syncData);
+      // Store sync data via API
+      await _ciServerClient.updateContactSyncData(
+        studioId: studioId,
+        syncData: syncData,
+      );
 
       // Sync health data entries to CI-Server
-      await _syncHealthDataEntries(studioId, contactId, healthData);
+      await _ciServerClient.updateContactHealthData(
+        studioId: studioId,
+        contactId: contactId,
+        healthData: healthData,
+      );
 
       // Update sync status to completed
       final completedSyncData = syncData.copyWith(
@@ -42,7 +48,10 @@ class ContactsSyncService {
         lastSyncTime: DateTime.now(),
       );
 
-      await _storeContactSyncData(completedSyncData);
+      await _ciServerClient.updateContactSyncData(
+        studioId: studioId,
+        syncData: completedSyncData,
+      );
       return completedSyncData;
     } catch (e) {
       // Update sync status to failed
@@ -52,7 +61,10 @@ class ContactsSyncService {
         retryCount: syncData.retryCount + 1,
       );
 
-      await _storeContactSyncData(failedSyncData);
+      await _ciServerClient.updateContactSyncData(
+        studioId: studioId,
+        syncData: failedSyncData,
+      );
       throw ContactSyncException('Failed to sync contact health data: $e');
     }
   }
@@ -65,22 +77,23 @@ class ContactsSyncService {
 
     try {
       // Get all contacts for the studio
-      final contactsSnapshot = await _firestore
-          .contactsCollection(studioId: studioId)
-          .get();
+      final contacts = await _ciServerClient.getContacts(studioId: studioId);
 
-      for (final contactDoc in contactsSnapshot.docs) {
+      for (final contactData in contacts) {
+        final contactId = contactData['id'] as String? ?? 
+                         contactData['contactId'] as String;
+        
         try {
           // Get health data for this contact
-          final healthData = await _getContactHealthData(
+          final healthData = await _ciServerClient.getContactHealthData(
             studioId: studioId,
-            contactId: contactDoc.id,
+            contactId: contactId,
           );
 
           if (healthData.isNotEmpty) {
             final syncResult = await syncContactHealthData(
               studioId: studioId,
-              contactId: contactDoc.id,
+              contactId: contactId,
               healthData: healthData,
             );
             results.add(syncResult);
@@ -88,7 +101,7 @@ class ContactsSyncService {
         } catch (e) {
           // Continue with other contacts even if one fails
           final failedSyncData = ContactSyncData(
-            contactId: contactDoc.id,
+            contactId: contactId,
             studioId: studioId,
             lastSyncTime: DateTime.now(),
             healthData: const [],
@@ -113,7 +126,7 @@ class ContactsSyncService {
   }) async {
     try {
       // Get existing sync data
-      final existingSyncData = await _getContactSyncData(
+      final existingSyncData = await _ciServerClient.getContactSyncData(
         studioId: studioId,
         contactId: contactId,
       );
@@ -142,7 +155,7 @@ class ContactsSyncService {
     required String studioId,
     required String contactId,
   }) async {
-    return await _getContactSyncData(
+    return await _ciServerClient.getContactSyncData(
       studioId: studioId,
       contactId: contactId,
     );
@@ -153,86 +166,12 @@ class ContactsSyncService {
     required String studioId,
   }) async {
     try {
-      final syncDataSnapshot = await _firestore
-          .studioDoc(studioId)
-          .collection('contact_sync_data')
-          .get();
-
-      return syncDataSnapshot.docs
-          .map((doc) => ContactSyncData.fromJson({
-                ...doc.data(),
-                'contactId': doc.id,
-              }))
-          .toList();
+      return await _ciServerClient.getAllContactsSyncData(
+        studioId: studioId,
+      );
     } catch (e) {
       throw ContactSyncException('Failed to get contacts sync status: $e');
     }
-  }
-
-  // Private helper methods
-
-  Future<void> _storeContactSyncData(ContactSyncData syncData) async {
-    await _firestore
-        .studioDoc(syncData.studioId)
-        .collection('contact_sync_data')
-        .doc(syncData.contactId)
-        .set(syncData.toJson());
-  }
-
-  Future<ContactSyncData?> _getContactSyncData({
-    required String studioId,
-    required String contactId,
-  }) async {
-    final doc = await _firestore
-        .studioDoc(studioId)
-        .collection('contact_sync_data')
-        .doc(contactId)
-        .get();
-
-    if (!doc.exists) return null;
-
-    return ContactSyncData.fromJson({
-      ...doc.data()!,
-      'contactId': contactId,
-    });
-  }
-
-  Future<List<HealthData>> _getContactHealthData({
-    required String studioId,
-    required String contactId,
-  }) async {
-    final healthDataSnapshot = await _firestore
-        .contactDoc(studioId: studioId, contactId: contactId)
-        .collection('health_data')
-        .orderBy('timestamp', descending: true)
-        .get();
-
-    return healthDataSnapshot.docs
-        .map((doc) => HealthData.fromJson({
-              ...doc.data(),
-              'id': doc.id,
-            }))
-        .toList();
-  }
-
-  Future<void> _syncHealthDataEntries(
-    String studioId,
-    String contactId,
-    List<HealthData> healthData,
-  ) async {
-    // Store each health data entry in the CI-Server (Firestore)
-    final batch = _firestore.batch();
-
-    for (final data in healthData) {
-      final healthDataRef = _firestore
-          .contactDoc(studioId: studioId, contactId: contactId)
-          .collection('health_data')
-          .doc(data.id);
-
-      batch.set(healthDataRef, data.toJson());
-    }
-
-    await batch.commit();
   }
 }
 

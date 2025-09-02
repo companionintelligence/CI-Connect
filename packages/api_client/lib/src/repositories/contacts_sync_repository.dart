@@ -38,12 +38,12 @@ abstract class ContactsSyncRepository {
   });
 }
 
-/// {@template firebase_contacts_sync_repository}
-/// Firebase implementation of [ContactsSyncRepository]
+/// {@template api_contacts_sync_repository}
+/// API implementation of [ContactsSyncRepository]
 /// {@endtemplate}
-class FirebaseContactsSyncRepository implements ContactsSyncRepository {
-  /// {@macro firebase_contacts_sync_repository}
-  FirebaseContactsSyncRepository({
+class ApiContactsSyncRepository implements ContactsSyncRepository {
+  /// {@macro api_contacts_sync_repository}
+  ApiContactsSyncRepository({
     required ContactsSyncService contactsSyncService,
   }) : _contactsSyncService = contactsSyncService;
 
