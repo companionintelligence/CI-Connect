@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+class MockCIServerApiClient extends Mock implements CIServerApiClient {}
+class MockCalendarSyncService extends Mock implements CalendarSyncService {}
 
 void main() {
   group('ApiClient', () {
@@ -15,26 +17,41 @@ void main() {
       apiClient = ApiClient(firestore: mockFirestore);
     });
 
-    test('creates instance with calendar sync service', () {
-      expect(apiClient.calendarSync, isA<CalendarSyncService>());
+    test('can be instantiated', () {
+      expect(ApiClient(firestore: mockFirestore), isNotNull);
     });
 
     test('generates ID using Firestore', () {
-      // Arrange
       when(() => mockFirestore.generateId()).thenReturn('generated-id');
 
-      // Act
-      final id = apiClient.generateId();
+      final result = apiClient.generateId();
 
-      // Assert
-      expect(id, 'generated-id');
+      expect(result, equals('generated-id'));
       verify(() => mockFirestore.generateId()).called(1);
     });
 
-    test('provides access to calendar sync functionality', () {
-      // The calendar sync service should be accessible through the API client
-      expect(apiClient.calendarSync, isNotNull);
+    test('provides calendar sync service', () {
       expect(apiClient.calendarSync, isA<CalendarSyncService>());
+    });
+
+    test('provides CI-Server API client', () {
+      expect(apiClient.ciServerApi, isA<CIServerApiClient>());
+    });
+
+    test('can be disposed', () {
+      expect(() => apiClient.dispose(), returnsNormally);
+    });
+
+    test('accepts custom CI-Server base URL', () {
+      const customUrl = 'https://custom.ci-server.com';
+      final customApiClient = ApiClient(
+        firestore: mockFirestore,
+        ciServerBaseUrl: customUrl,
+      );
+
+      expect(customApiClient, isNotNull);
+      expect(customApiClient.calendarSync, isA<CalendarSyncService>());
+      expect(customApiClient.ciServerApi, isA<CIServerApiClient>());
     });
   });
 }

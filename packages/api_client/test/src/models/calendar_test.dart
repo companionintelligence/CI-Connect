@@ -3,164 +3,152 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Calendar', () {
-    const calendar = Calendar(
-      id: 'cal1',
+    final calendar = Calendar(
+      id: 'cal-123',
       name: 'Test Calendar',
       description: 'A test calendar',
+      color: '#4285F4',
+      timeZone: 'America/New_York',
       isEnabled: true,
       source: 'google',
-      lastSyncedAt: null,
-      createdAt: null,
+      createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
     );
 
     group('fromJson', () {
-      test('creates instance from valid JSON', () {
+      test('creates Calendar from JSON', () {
         final json = {
-          'id': 'cal1',
+          'id': 'cal-123',
           'name': 'Test Calendar',
           'description': 'A test calendar',
+          'color': '#4285F4',
+          'timeZone': 'America/New_York',
           'isEnabled': true,
           'source': 'google',
-          'createdAt': '2023-01-01T00:00:00.000Z',
+          'createdAt': '2024-01-01T00:00:00Z',
         };
 
         final result = Calendar.fromJson(json);
 
-        expect(result.id, 'cal1');
-        expect(result.name, 'Test Calendar');
-        expect(result.description, 'A test calendar');
-        expect(result.isEnabled, true);
-        expect(result.source, 'google');
-        expect(result.createdAt, DateTime.parse('2023-01-01T00:00:00.000Z'));
-        expect(result.lastSyncedAt, null);
-        expect(result.updatedAt, null);
+        expect(result.id, equals('cal-123'));
+        expect(result.name, equals('Test Calendar'));
+        expect(result.description, equals('A test calendar'));
+        expect(result.color, equals('#4285F4'));
+        expect(result.timeZone, equals('America/New_York'));
+        expect(result.isEnabled, isTrue);
+        expect(result.source, equals('google'));
+        expect(result.createdAt, equals(DateTime.parse('2024-01-01T00:00:00Z')));
       });
 
-      test('handles optional fields correctly', () {
+      test('handles null optional fields', () {
         final json = {
-          'id': 'cal1',
+          'id': 'cal-123',
           'name': 'Test Calendar',
           'isEnabled': true,
           'source': 'google',
-          'createdAt': '2023-01-01T00:00:00.000Z',
-          'lastSyncedAt': '2023-01-02T00:00:00.000Z',
-          'updatedAt': '2023-01-03T00:00:00.000Z',
+          'createdAt': '2024-01-01T00:00:00Z',
         };
 
         final result = Calendar.fromJson(json);
 
-        expect(result.description, null);
-        expect(result.lastSyncedAt, DateTime.parse('2023-01-02T00:00:00.000Z'));
-        expect(result.updatedAt, DateTime.parse('2023-01-03T00:00:00.000Z'));
+        expect(result.description, isNull);
+        expect(result.color, isNull);
+        expect(result.timeZone, isNull);
+        expect(result.lastSyncedAt, isNull);
+        expect(result.updatedAt, isNull);
       });
     });
 
     group('toJson', () {
-      test('converts to JSON correctly', () {
-        final testCalendar = Calendar(
-          id: 'cal1',
-          name: 'Test Calendar',
-          description: 'A test calendar',
-          isEnabled: true,
-          source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
-          lastSyncedAt: DateTime.parse('2023-01-02T00:00:00.000Z'),
-          updatedAt: DateTime.parse('2023-01-03T00:00:00.000Z'),
-        );
+      test('converts Calendar to JSON', () {
+        final result = calendar.toJson();
 
-        final result = testCalendar.toJson();
-
-        expect(result['id'], 'cal1');
-        expect(result['name'], 'Test Calendar');
-        expect(result['description'], 'A test calendar');
-        expect(result['isEnabled'], true);
-        expect(result['source'], 'google');
-        expect(result['createdAt'], '2023-01-01T00:00:00.000Z');
-        expect(result['lastSyncedAt'], '2023-01-02T00:00:00.000Z');
-        expect(result['updatedAt'], '2023-01-03T00:00:00.000Z');
+        expect(result['id'], equals('cal-123'));
+        expect(result['name'], equals('Test Calendar'));
+        expect(result['description'], equals('A test calendar'));
+        expect(result['color'], equals('#4285F4'));
+        expect(result['timeZone'], equals('America/New_York'));
+        expect(result['isEnabled'], isTrue);
+        expect(result['source'], equals('google'));
+        expect(result['createdAt'], equals('2024-01-01T00:00:00Z'));
       });
 
-      test('handles null values correctly', () {
-        final testCalendar = Calendar(
-          id: 'cal1',
+      test('includes null values', () {
+        final calendarWithNulls = Calendar(
+          id: 'cal-123',
           name: 'Test Calendar',
           isEnabled: true,
           source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
+          createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
         );
 
-        final result = testCalendar.toJson();
+        final result = calendarWithNulls.toJson();
 
-        expect(result['description'], null);
-        expect(result['lastSyncedAt'], null);
-        expect(result['updatedAt'], null);
+        expect(result['description'], isNull);
+        expect(result['color'], isNull);
+        expect(result['timeZone'], isNull);
+        expect(result['lastSyncedAt'], isNull);
+        expect(result['updatedAt'], isNull);
       });
     });
 
     group('copyWith', () {
       test('creates copy with updated fields', () {
-        final original = Calendar(
-          id: 'cal1',
-          name: 'Test Calendar',
-          isEnabled: true,
-          source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
-        );
-
-        final copy = original.copyWith(
+        final updated = calendar.copyWith(
           name: 'Updated Calendar',
           isEnabled: false,
+          lastSyncedAt: DateTime.parse('2024-01-02T00:00:00Z'),
         );
 
-        expect(copy.id, original.id);
-        expect(copy.name, 'Updated Calendar');
-        expect(copy.isEnabled, false);
-        expect(copy.source, original.source);
-        expect(copy.createdAt, original.createdAt);
+        expect(updated.id, equals(calendar.id));
+        expect(updated.name, equals('Updated Calendar'));
+        expect(updated.isEnabled, isFalse);
+        expect(updated.lastSyncedAt, equals(DateTime.parse('2024-01-02T00:00:00Z')));
+        expect(updated.source, equals(calendar.source));
+      });
+
+      test('creates copy with same values when no changes', () {
+        final copy = calendar.copyWith();
+
+        expect(copy, equals(calendar));
+        expect(identical(copy, calendar), isFalse);
       });
     });
 
     group('equality', () {
-      test('returns true for identical calendars', () {
-        final calendar1 = Calendar(
-          id: 'cal1',
+      test('calendars with same values are equal', () {
+        final other = Calendar(
+          id: 'cal-123',
           name: 'Test Calendar',
+          description: 'A test calendar',
+          color: '#4285F4',
+          timeZone: 'America/New_York',
           isEnabled: true,
           source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
+          createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
         );
 
-        final calendar2 = Calendar(
-          id: 'cal1',
-          name: 'Test Calendar',
-          isEnabled: true,
-          source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
-        );
-
-        expect(calendar1, calendar2);
-        expect(calendar1.hashCode, calendar2.hashCode);
+        expect(calendar, equals(other));
+        expect(calendar.hashCode, equals(other.hashCode));
       });
 
-      test('returns false for different calendars', () {
-        final calendar1 = Calendar(
-          id: 'cal1',
-          name: 'Test Calendar',
-          isEnabled: true,
-          source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
-        );
+      test('calendars with different values are not equal', () {
+        final other = calendar.copyWith(name: 'Different Calendar');
 
-        final calendar2 = Calendar(
-          id: 'cal2',
-          name: 'Test Calendar',
-          isEnabled: true,
-          source: 'google',
-          createdAt: DateTime.parse('2023-01-01T00:00:00.000Z'),
-        );
-
-        expect(calendar1, isNot(calendar2));
+        expect(calendar, isNot(equals(other)));
+        expect(calendar.hashCode, isNot(equals(other.hashCode)));
       });
+    });
+
+    test('toString contains all fields', () {
+      final result = calendar.toString();
+
+      expect(result, contains('cal-123'));
+      expect(result, contains('Test Calendar'));
+      expect(result, contains('A test calendar'));
+      expect(result, contains('#4285F4'));
+      expect(result, contains('America/New_York'));
+      expect(result, contains('true'));
+      expect(result, contains('google'));
     });
   });
 }

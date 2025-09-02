@@ -1,71 +1,83 @@
 /// {@template calendar}
-/// A calendar entity that represents a calendar to be synced.
+/// A calendar entity that represents a synced calendar from external sources.
 /// {@endtemplate}
 class Calendar {
   /// {@macro calendar}
   const Calendar({
     required this.id,
     required this.name,
-    this.description,
     required this.isEnabled,
     required this.source,
-    this.lastSyncedAt,
     required this.createdAt,
+    this.description,
+    this.color,
+    this.timeZone,
+    this.lastSyncedAt,
     this.updatedAt,
   });
 
-  /// Creates a [Calendar] instance from a JSON map.
+  /// Creates a [Calendar] from a JSON map.
   factory Calendar.fromJson(Map<String, dynamic> json) {
     return Calendar(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
+      color: json['color'] as String?,
+      timeZone: json['timeZone'] as String?,
       isEnabled: json['isEnabled'] as bool,
       source: json['source'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
       lastSyncedAt: json['lastSyncedAt'] != null
           ? DateTime.parse(json['lastSyncedAt'] as String)
           : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
     );
   }
 
-  /// The unique identifier of the calendar.
+  /// The unique identifier for this calendar.
   final String id;
 
   /// The display name of the calendar.
   final String name;
 
-  /// An optional description of the calendar.
+  /// Optional description of the calendar.
   final String? description;
 
-  /// Whether the calendar is enabled for syncing.
+  /// The color associated with this calendar (hex color code).
+  final String? color;
+
+  /// The timezone of the calendar (e.g., "America/New_York").
+  final String? timeZone;
+
+  /// Whether this calendar is enabled for synchronization.
   final bool isEnabled;
 
-  /// The source system of the calendar (e.g., 'google', 'outlook', 'apple').
+  /// The source of this calendar (e.g., "google", "outlook", "apple").
   final String source;
 
-  /// The timestamp when the calendar was last synchronized.
-  final DateTime? lastSyncedAt;
-
-  /// The timestamp when the calendar was created.
+  /// When this calendar was created.
   final DateTime createdAt;
 
-  /// The timestamp when the calendar was last updated.
+  /// When this calendar was last synced with its external source.
+  final DateTime? lastSyncedAt;
+
+  /// When this calendar was last updated.
   final DateTime? updatedAt;
 
-  /// Converts the [Calendar] instance to a JSON map.
+  /// Converts this [Calendar] to a JSON map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'description': description,
+      'color': color,
+      'timeZone': timeZone,
       'isEnabled': isEnabled,
       'source': source,
-      'lastSyncedAt': lastSyncedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
+      'lastSyncedAt': lastSyncedAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
   }
@@ -75,47 +87,73 @@ class Calendar {
     String? id,
     String? name,
     String? description,
+    String? color,
+    String? timeZone,
     bool? isEnabled,
     String? source,
-    DateTime? lastSyncedAt,
     DateTime? createdAt,
+    DateTime? lastSyncedAt,
     DateTime? updatedAt,
   }) {
     return Calendar(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
+      color: color ?? this.color,
+      timeZone: timeZone ?? this.timeZone,
       isEnabled: isEnabled ?? this.isEnabled,
       source: source ?? this.source,
-      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       createdAt: createdAt ?? this.createdAt,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Calendar &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          name == other.name &&
-          description == other.description &&
-          isEnabled == other.isEnabled &&
-          source == other.source &&
-          lastSyncedAt == other.lastSyncedAt &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Calendar &&
+        other.id == id &&
+        other.name == name &&
+        other.description == description &&
+        other.color == color &&
+        other.timeZone == timeZone &&
+        other.isEnabled == isEnabled &&
+        other.source == source &&
+        other.createdAt == createdAt &&
+        other.lastSyncedAt == lastSyncedAt &&
+        other.updatedAt == updatedAt;
+  }
 
   @override
-  int get hashCode => Object.hash(
-        id,
-        name,
-        description,
-        isEnabled,
-        source,
-        lastSyncedAt,
-        createdAt,
-        updatedAt,
-      );
+  int get hashCode {
+    return Object.hash(
+      id,
+      name,
+      description,
+      color,
+      timeZone,
+      isEnabled,
+      source,
+      createdAt,
+      lastSyncedAt,
+      updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'Calendar('
+        'id: $id, '
+        'name: $name, '
+        'description: $description, '
+        'color: $color, '
+        'timeZone: $timeZone, '
+        'isEnabled: $isEnabled, '
+        'source: $source, '
+        'createdAt: $createdAt, '
+        'lastSyncedAt: $lastSyncedAt, '
+        'updatedAt: $updatedAt'
+        ')';
+  }
 }

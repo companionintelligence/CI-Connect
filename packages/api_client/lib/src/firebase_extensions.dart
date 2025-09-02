@@ -91,30 +91,6 @@ extension FirebaseFirestoreX on FirebaseFirestore {
   }) =>
       contactsCollection(studioId: studioId).doc(contactId);
 
-  CollectionReference<Map<String, dynamic>> calendarsCollection({
-    required String studioId,
-  }) =>
-      studioDoc(studioId).collection('calendars');
-  DocumentReference<Map<String, dynamic>> calendarDoc({
-    required String studioId,
-    required String calendarId,
-  }) =>
-      calendarsCollection(studioId: studioId).doc(calendarId);
-
-  CollectionReference<Map<String, dynamic>> calendarEventsCollection({
-    required String studioId,
-    required String calendarId,
-  }) =>
-      calendarDoc(studioId: studioId, calendarId: calendarId)
-          .collection('events');
-  DocumentReference<Map<String, dynamic>> calendarEventDoc({
-    required String studioId,
-    required String calendarId,
-    required String eventId,
-  }) =>
-      calendarEventsCollection(studioId: studioId, calendarId: calendarId)
-          .doc(eventId);
-
   CollectionReference<Map<String, dynamic>> promotionsCollection(
     String studioId,
   ) =>

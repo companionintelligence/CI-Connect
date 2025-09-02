@@ -1,222 +1,245 @@
 import 'package:api_client/api_client.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
-
-class MockCollectionReference extends Mock
-    implements CollectionReference<Map<String, dynamic>> {}
-
-class MockDocumentReference extends Mock
-    implements DocumentReference<Map<String, dynamic>> {}
-
-class MockQuerySnapshot extends Mock
-    implements QuerySnapshot<Map<String, dynamic>> {}
-
-class MockQueryDocumentSnapshot extends Mock
-    implements QueryDocumentSnapshot<Map<String, dynamic>> {}
+class MockCIServerApiClient extends Mock implements CIServerApiClient {}
 
 void main() {
   group('CalendarSyncService', () {
+    late MockCIServerApiClient mockApiClient;
     late CalendarSyncService service;
-    late MockFirebaseFirestore mockFirestore;
-    late MockCollectionReference mockCollection;
-    late MockDocumentReference mockDocument;
-    late MockQuerySnapshot mockSnapshot;
-    late MockQueryDocumentSnapshot mockDocSnapshot;
 
     setUp(() {
-      mockFirestore = MockFirebaseFirestore();
-      mockCollection = MockCollectionReference();
-      mockDocument = MockDocumentReference();
-      mockSnapshot = MockQuerySnapshot();
-      mockDocSnapshot = MockQueryDocumentSnapshot();
-      service = CalendarSyncService(firestore: mockFirestore);
+      mockApiClient = MockCIServerApiClient();
+      service = CalendarSyncService(apiClient: mockApiClient);
     });
 
     group('syncAllCalendars', () {
-      test('returns empty list when no calendars available', () async {
-        // Arrange - mock the Firestore extension methods would be called
+      test('successfully syncs all calendars and their events', () async {
+        // Mock the create/update operations for calendars
+        when(() => mockApiClient.update(any(), any(), any()))
+            .thenThrow(const CIServerApiException('Not found'));
+        when(() => mockApiClient.create(any(), any()))
+            .thenAnswer((_) async => {'id': 'created-id'});
 
-        // Act
-        final result = await service.syncAllCalendars(studioId: 'studio1');
+        final result = await service.syncAllCalendars(studioId: 'studio-123');
 
-        // Assert
-        expect(result, isEmpty);
+        expect(result, hasLength(2)); // Google and Outlook calendars
+        expect(result[0].source, equals('google'));
+        expect(result[1].source, equals('outlook'));
+        expect(result[0].lastSyncedAt, isNotNull);
+        expect(result[1].lastSyncedAt, isNotNull);
+
+        // Verify calendars were created (after update failed)
+        verify(() => mockApiClient.create('content/calendars', any())).called(2);
+        // Verify events were also synced for each calendar
+        verify(() => mockApiClient.create('content/calendar-events', any())).called(2);
       });
 
-      test('throws CalendarSyncException on error', () async {
-        // This test would need more complex mocking to test error scenarios
-        // For now, we just ensure the method exists and can be called
+      test('throws CalendarSyncException on API error', () async {
+        when(() => mockApiClient.update(any(), any(), any()))
+            .thenThrow(const CIServerApiException('Server error'));
+        when(() => mockApiClient.create(any(), any()))
+            .thenThrow(const CIServerApiException('Server error'));
+
         expect(
-          () => service.syncAllCalendars(studioId: 'studio1'),
-          returnsNormally,
+          () async => await service.syncAllCalendars(studioId: 'studio-123'),
+          throwsA(isA<CalendarSyncException>()),
         );
       });
     });
 
     group('syncCalendar', () {
-      test('syncs a specific calendar', () async {
-        // Act & Assert - ensure method exists and can be called
-        expect(
-          () => service.syncCalendar(studioId: 'studio1', calendarId: 'cal1'),
-          returnsNormally,
+      test('successfully syncs a specific calendar', () async {
+        when(() => mockApiClient.update(any(), any(), any()))
+            .thenThrow(const CIServerApiException('Not found'));
+        when(() => mockApiClient.create(any(), any()))
+            .thenAnswer((_) async => {'id': 'created-id'});
+
+        final result = await service.syncCalendar(
+          studioId: 'studio-123',
+          calendarId: 'cal-123',
         );
+
+        expect(result.id, equals('cal-123'));
+        expect(result.lastSyncedAt, isNotNull);
+        expect(result.updatedAt, isNotNull);
+
+        // Verify calendar was created
+        verify(() => mockApiClient.create('content/calendars', any())).called(1);
+        // Verify events were synced
+        verify(() => mockApiClient.create('content/calendar-events', any())).called(1);
       });
 
-      test('throws CalendarSyncException on error', () async {
-        // Test that the method returns a Future and can handle errors
-        final future = service.syncCalendar(
-          studioId: 'studio1',
-          calendarId: 'invalid-calendar',
+      test('throws CalendarSyncException on API error', () async {
+        when(() => mockApiClient.update(any(), any(), any()))
+            .thenThrow(const CIServerApiException('Server error'));
+        when(() => mockApiClient.create(any(), any()))
+            .thenThrow(const CIServerApiException('Server error'));
+
+        expect(
+          () async => await service.syncCalendar(
+            studioId: 'studio-123',
+            calendarId: 'cal-123',
+          ),
+          throwsA(isA<CalendarSyncException>()),
         );
-        
-        // Since we're creating a placeholder calendar, this should complete
-        expect(future, completes);
       });
     });
 
     group('getCalendars', () {
-      test('returns empty list when no calendars exist', () async {
-        // Arrange
-        when(() => mockFirestore.calendarsCollection(studioId: any(named: 'studioId')))
-            .thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenAnswer((_) async => mockSnapshot);
-        when(() => mockSnapshot.docs).thenReturn([]);
+      test('successfully retrieves calendars from API', () async {
+        when(() => mockApiClient.getAll(
+          'content/calendars',
+          queryParameters: any(named: 'queryParameters'),
+        )).thenAnswer((_) async => [
+          {
+            'id': 'cal-1',
+            'name': 'Calendar 1',
+            'isEnabled': true,
+            'source': 'google',
+            'createdAt': '2024-01-01T00:00:00Z',
+          },
+          {
+            'id': 'cal-2',
+            'name': 'Calendar 2',
+            'isEnabled': false,
+            'source': 'outlook',
+            'createdAt': '2024-01-02T00:00:00Z',
+          },
+        ]);
 
-        // Act
-        final result = await service.getCalendars(studioId: 'studio1');
+        final result = await service.getCalendars(studioId: 'studio-123');
 
-        // Assert
-        expect(result, isEmpty);
+        expect(result, hasLength(2));
+        expect(result[0].id, equals('cal-1'));
+        expect(result[0].name, equals('Calendar 1'));
+        expect(result[0].isEnabled, isTrue);
+        expect(result[1].id, equals('cal-2'));
+        expect(result[1].isEnabled, isFalse);
+
+        verify(() => mockApiClient.getAll(
+          'content/calendars',
+          queryParameters: {'studio_id': 'studio-123'},
+        )).called(1);
       });
 
-      test('returns calendars when they exist', () async {
-        // Arrange
-        final calendarData = {
-          'name': 'Test Calendar',
-          'description': 'A test calendar',
-          'isEnabled': true,
-          'source': 'google',
-          'createdAt': '2023-01-01T00:00:00.000Z',
-        };
+      test('throws CalendarSyncException on API error', () async {
+        when(() => mockApiClient.getAll(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        )).thenThrow(const CIServerApiException('Server error'));
 
-        when(() => mockFirestore.calendarsCollection(studioId: any(named: 'studioId')))
-            .thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenAnswer((_) async => mockSnapshot);
-        when(() => mockSnapshot.docs).thenReturn([mockDocSnapshot]);
-        when(() => mockDocSnapshot.id).thenReturn('cal1');
-        when(() => mockDocSnapshot.data()).thenReturn(calendarData);
-
-        // Act
-        final result = await service.getCalendars(studioId: 'studio1');
-
-        // Assert
-        expect(result, hasLength(1));
-        expect(result.first.id, 'cal1');
-        expect(result.first.name, 'Test Calendar');
-        expect(result.first.source, 'google');
-      });
-
-      test('throws CalendarSyncException on Firestore error', () async {
-        // Arrange
-        when(() => mockFirestore.calendarsCollection(studioId: any(named: 'studioId')))
-            .thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenThrow(Exception('Firestore error'));
-
-        // Act & Assert
         expect(
-          () => service.getCalendars(studioId: 'studio1'),
+          () async => await service.getCalendars(studioId: 'studio-123'),
           throwsA(isA<CalendarSyncException>()),
         );
       });
     });
 
     group('getCalendarEvents', () {
-      test('returns empty list when no events exist', () async {
-        // Arrange
-        when(() => mockFirestore.calendarEventsCollection(
-              studioId: any(named: 'studioId'),
-              calendarId: any(named: 'calendarId'),
-            )).thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenAnswer((_) async => mockSnapshot);
-        when(() => mockSnapshot.docs).thenReturn([]);
+      test('successfully retrieves calendar events from API', () async {
+        when(() => mockApiClient.getAll(
+          'content/calendar-events',
+          queryParameters: any(named: 'queryParameters'),
+        )).thenAnswer((_) async => [
+          {
+            'id': 'event-1',
+            'calendarId': 'cal-123',
+            'title': 'Event 1',
+            'startDateTime': '2024-01-01T10:00:00Z',
+            'endDateTime': '2024-01-01T11:00:00Z',
+            'isAllDay': false,
+          },
+          {
+            'id': 'event-2',
+            'calendarId': 'cal-123',
+            'title': 'Event 2',
+            'startDateTime': '2024-01-02T14:00:00Z',
+            'endDateTime': '2024-01-02T15:00:00Z',
+            'isAllDay': false,
+          },
+        ]);
 
-        // Act
         final result = await service.getCalendarEvents(
-          studioId: 'studio1',
-          calendarId: 'cal1',
+          studioId: 'studio-123',
+          calendarId: 'cal-123',
         );
 
-        // Assert
-        expect(result, isEmpty);
+        expect(result, hasLength(2));
+        expect(result[0].id, equals('event-1'));
+        expect(result[0].title, equals('Event 1'));
+        expect(result[0].calendarId, equals('cal-123'));
+        expect(result[1].id, equals('event-2'));
+        expect(result[1].title, equals('Event 2'));
+
+        verify(() => mockApiClient.getAll(
+          'content/calendar-events',
+          queryParameters: {
+            'studio_id': 'studio-123',
+            'calendar_id': 'cal-123',
+          },
+        )).called(1);
       });
 
-      test('returns events when they exist', () async {
-        // Arrange
-        final eventData = {
-          'calendarId': 'cal1',
-          'title': 'Test Event',
-          'startTime': '2023-01-01T09:00:00.000Z',
-          'endTime': '2023-01-01T10:00:00.000Z',
-          'source': 'google',
-          'createdAt': '2023-01-01T00:00:00.000Z',
-        };
+      test('throws CalendarSyncException on API error', () async {
+        when(() => mockApiClient.getAll(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        )).thenThrow(const CIServerApiException('Server error'));
 
-        when(() => mockFirestore.calendarEventsCollection(
-              studioId: any(named: 'studioId'),
-              calendarId: any(named: 'calendarId'),
-            )).thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenAnswer((_) async => mockSnapshot);
-        when(() => mockSnapshot.docs).thenReturn([mockDocSnapshot]);
-        when(() => mockDocSnapshot.id).thenReturn('event1');
-        when(() => mockDocSnapshot.data()).thenReturn(eventData);
-
-        // Act
-        final result = await service.getCalendarEvents(
-          studioId: 'studio1',
-          calendarId: 'cal1',
-        );
-
-        // Assert
-        expect(result, hasLength(1));
-        expect(result.first.id, 'event1');
-        expect(result.first.title, 'Test Event');
-        expect(result.first.calendarId, 'cal1');
-      });
-
-      test('throws CalendarSyncException on Firestore error', () async {
-        // Arrange
-        when(() => mockFirestore.calendarEventsCollection(
-              studioId: any(named: 'studioId'),
-              calendarId: any(named: 'calendarId'),
-            )).thenReturn(mockCollection);
-        when(() => mockCollection.get())
-            .thenThrow(Exception('Firestore error'));
-
-        // Act & Assert
         expect(
-          () => service.getCalendarEvents(
-            studioId: 'studio1',
-            calendarId: 'cal1',
+          () async => await service.getCalendarEvents(
+            studioId: 'studio-123',
+            calendarId: 'cal-123',
           ),
           throwsA(isA<CalendarSyncException>()),
         );
       });
     });
+
+    group('_syncCalendar', () {
+      test('tries update first, then creates if update fails', () async {
+        // First call to update fails (not found)
+        when(() => mockApiClient.update('content/calendars', any(), any()))
+            .thenThrow(const CIServerApiException('Not found'));
+        // Second call to create succeeds
+        when(() => mockApiClient.create('content/calendars', any()))
+            .thenAnswer((_) async => {'id': 'created-id'});
+
+        await service.syncCalendar(
+          studioId: 'studio-123',
+          calendarId: 'cal-123',
+        );
+
+        verify(() => mockApiClient.update('content/calendars', 'cal-123', any()))
+            .called(1);
+        verify(() => mockApiClient.create('content/calendars', any()))
+            .called(1);
+      });
+
+      test('uses update when it succeeds', () async {
+        when(() => mockApiClient.update('content/calendars', any(), any()))
+            .thenAnswer((_) async => {'id': 'updated-id'});
+        when(() => mockApiClient.create('content/calendar-events', any()))
+            .thenAnswer((_) async => {'id': 'event-id'});
+
+        await service.syncCalendar(
+          studioId: 'studio-123',
+          calendarId: 'cal-123',
+        );
+
+        verify(() => mockApiClient.update('content/calendars', 'cal-123', any()))
+            .called(1);
+        verifyNever(() => mockApiClient.create('content/calendars', any()));
+      });
+    });
   });
 
   group('CalendarSyncException', () {
-    test('creates exception with message', () {
-      const exception = CalendarSyncException('Test message');
-      expect(exception.message, 'Test message');
-      expect(exception.toString(), 'CalendarSyncException: Test message');
+    test('toString returns formatted message', () {
+      const exception = CalendarSyncException('Test error');
+      expect(exception.toString(), equals('CalendarSyncException: Test error'));
     });
   });
 }

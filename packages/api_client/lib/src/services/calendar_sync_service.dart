@@ -1,23 +1,24 @@
-import 'package:api_client/src/firebase_extensions.dart';
+import 'dart:math';
+
 import 'package:api_client/src/models/models.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:api_client/src/services/ci_server_api_client.dart';
 
 /// {@template calendar_sync_service}
-/// Service for syncing calendars and calendar events to the CI-Server API.
+/// Service for syncing calendars and calendar events with the CI-Server API.
 /// {@endtemplate}
 class CalendarSyncService {
   /// {@macro calendar_sync_service}
   CalendarSyncService({
-    required FirebaseFirestore firestore,
-  }) : _firestore = firestore;
+    required CIServerApiClient apiClient,
+  }) : _apiClient = apiClient;
 
-  final FirebaseFirestore _firestore;
+  final CIServerApiClient _apiClient;
 
   /// Copies and syncs all calendars for a studio to the CI-Server API.
   ///
   /// This method will:
   /// 1. Fetch all calendars from external sources
-  /// 2. Store/update them in Firestore
+  /// 2. Store/update them in the CI-Server via the content API
   /// 3. Sync all events for each calendar
   ///
   /// Returns a list of synced [Calendar] objects.
@@ -25,10 +26,7 @@ class CalendarSyncService {
     required String studioId,
   }) async {
     try {
-      // This is where external calendar sources would be integrated
-      // For now, we'll create a basic implementation that demonstrates
-      // the structure for future integration
-      
+      // Fetch calendars from external sources
       final calendarsToSync = await _fetchCalendarsFromSources();
       final syncedCalendars = <Calendar>[];
 
@@ -61,7 +59,7 @@ class CalendarSyncService {
       // Fetch calendar from external source
       final calendar = await _fetchCalendarFromSource(calendarId);
       
-      // Store/update in Firestore
+      // Store/update in CI-Server via content API
       final syncedCalendar = await _syncCalendar(
         studioId: studioId,
         calendar: calendar,
@@ -79,44 +77,43 @@ class CalendarSyncService {
     }
   }
 
-  /// Gets all synced calendars for a studio.
+  /// Gets all synced calendars for a studio from the CI-Server API.
   Future<List<Calendar>> getCalendars({
     required String studioId,
   }) async {
     try {
-      final snapshot = await _firestore
-          .calendarsCollection(studioId: studioId)
-          .get();
+      // Using the 'content' endpoint as it's one of the mentioned CI-Server endpoints
+      // and calendars are a type of content
+      final response = await _apiClient.getAll(
+        'content/calendars',
+        queryParameters: {'studio_id': studioId},
+      );
 
-      return snapshot.docs
-          .map((doc) => Calendar.fromJson({
-                'id': doc.id,
-                ...doc.data(),
-              }))
+      return response
+          .map((json) => Calendar.fromJson(json))
           .toList();
     } catch (e) {
       throw CalendarSyncException('Failed to fetch calendars: $e');
     }
   }
 
-  /// Gets all events for a specific calendar.
+  /// Gets all events for a specific calendar from the CI-Server API.
   Future<List<CalendarEvent>> getCalendarEvents({
     required String studioId,
     required String calendarId,
   }) async {
     try {
-      final snapshot = await _firestore
-          .calendarEventsCollection(
-            studioId: studioId,
-            calendarId: calendarId,
-          )
-          .get();
+      // Using the 'content' endpoint for calendar events
+      final response = await _apiClient.getAll(
+        'content/calendar-events',
+        queryParameters: {
+          'studio_id': studioId,
+          'calendar_id': calendarId,
+        },
+      );
 
-      return snapshot.docs
-          .map((doc) => CalendarEvent.fromJson({
-                'id': doc.id,
-                ...doc.data(),
-              }))
+      return response
+          .map((json) => CalendarEvent.fromJson(json))
           .toList();
     } catch (e) {
       throw CalendarSyncException('Failed to fetch calendar events: $e');
@@ -127,8 +124,29 @@ class CalendarSyncService {
   /// This would integrate with actual calendar APIs in a real implementation.
   Future<List<Calendar>> _fetchCalendarsFromSources() async {
     // TODO: Integrate with actual calendar sources (Google Calendar, Outlook, etc.)
-    // For now, return an empty list as a placeholder
-    return [];
+    // For now, return sample calendars for demonstration
+    return [
+      Calendar(
+        id: _generateId(),
+        name: 'Sample Google Calendar',
+        description: 'A sample Google Calendar for demonstration',
+        color: '#4285F4',
+        timeZone: 'America/New_York',
+        isEnabled: true,
+        source: 'google',
+        createdAt: DateTime.now(),
+      ),
+      Calendar(
+        id: _generateId(),
+        name: 'Sample Outlook Calendar',
+        description: 'A sample Outlook Calendar for demonstration',
+        color: '#0078D4',
+        timeZone: 'America/New_York',
+        isEnabled: true,
+        source: 'outlook',
+        createdAt: DateTime.now(),
+      ),
+    ];
   }
 
   /// Internal method to fetch a specific calendar from external source.
@@ -145,7 +163,7 @@ class CalendarSyncService {
     );
   }
 
-  /// Internal method to sync a calendar to Firestore.
+  /// Internal method to sync a calendar to CI-Server.
   Future<Calendar> _syncCalendar({
     required String studioId,
     required Calendar calendar,
@@ -155,9 +173,22 @@ class CalendarSyncService {
       updatedAt: DateTime.now(),
     );
 
-    await _firestore
-        .calendarDoc(studioId: studioId, calendarId: calendar.id)
-        .set(updatedCalendar.toJson());
+    final calendarData = {
+      ...updatedCalendar.toJson(),
+      'studio_id': studioId,
+    };
+
+    try {
+      // Try to update existing calendar first
+      await _apiClient.update(
+        'content/calendars',
+        calendar.id,
+        calendarData,
+      );
+    } on CIServerApiException {
+      // If update fails, try to create new calendar
+      await _apiClient.create('content/calendars', calendarData);
+    }
 
     return updatedCalendar;
   }
@@ -168,8 +199,66 @@ class CalendarSyncService {
     required String calendarId,
   }) async {
     // TODO: Fetch events from external calendar source
-    // and sync them to Firestore
-    // For now, this is a placeholder
+    // and sync them to CI-Server via content API
+    
+    // For demonstration, create some sample events
+    final sampleEvents = await _fetchEventsFromSource(calendarId);
+    
+    for (final event in sampleEvents) {
+      final eventData = {
+        ...event.toJson(),
+        'studio_id': studioId,
+      };
+
+      try {
+        // Try to update existing event first
+        await _apiClient.update(
+          'content/calendar-events',
+          event.id,
+          eventData,
+        );
+      } on CIServerApiException {
+        // If update fails, try to create new event
+        await _apiClient.create('content/calendar-events', eventData);
+      }
+    }
+  }
+
+  /// Internal method to fetch events from external source.
+  Future<List<CalendarEvent>> _fetchEventsFromSource(String calendarId) async {
+    // TODO: Integrate with actual calendar source API
+    // For now, create sample events for demonstration
+    final now = DateTime.now();
+    return [
+      CalendarEvent(
+        id: _generateId(),
+        calendarId: calendarId,
+        title: 'Sample Meeting',
+        description: 'A sample calendar event',
+        location: 'Conference Room A',
+        startDateTime: now.add(const Duration(days: 1)),
+        endDateTime: now.add(const Duration(days: 1, hours: 1)),
+        isAllDay: false,
+        attendees: [
+          const CalendarAttendee(
+            email: 'attendee@example.com',
+            name: 'John Doe',
+            responseStatus: 'accepted',
+          ),
+        ],
+        status: 'confirmed',
+        createdAt: DateTime.now(),
+      ),
+    ];
+  }
+
+  /// Generates a unique ID for calendar and event entities.
+  String _generateId() {
+    final random = Random();
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return String.fromCharCodes(
+      Iterable.generate(20, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
   }
 }
 

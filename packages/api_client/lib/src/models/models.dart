@@ -1,4 +1,4 @@
-/// Models for the API client package.
+/// Models for the API Client.
 library;
 
 export 'calendar.dart';
