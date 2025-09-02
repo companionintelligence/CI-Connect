@@ -1,11 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'health_data.g.dart';
-
 /// {@template health_data}
 /// Health data model for contacts sync
 /// {@endtemplate}
-@JsonSerializable()
 class HealthData {
   /// {@macro health_data}
   const HealthData({
@@ -20,8 +15,18 @@ class HealthData {
   });
 
   /// Creates a [HealthData] from a JSON map.
-  factory HealthData.fromJson(Map<String, dynamic> json) =>
-      _$HealthDataFromJson(json);
+  factory HealthData.fromJson(Map<String, dynamic> json) {
+    return HealthData(
+      id: json['id'] as String,
+      contactId: json['contactId'] as String,
+      dataType: json['dataType'] as String,
+      value: json['value'] as String,
+      unit: json['unit'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      notes: json['notes'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+  }
 
   /// The unique identifier for this health data entry
   final String id;
@@ -48,7 +53,18 @@ class HealthData {
   final Map<String, dynamic>? metadata;
 
   /// Converts this [HealthData] to a JSON map.
-  Map<String, dynamic> toJson() => _$HealthDataToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'contactId': contactId,
+      'dataType': dataType,
+      'value': value,
+      'unit': unit,
+      'timestamp': timestamp.toIso8601String(),
+      'notes': notes,
+      'metadata': metadata,
+    };
+  }
 
   /// Creates a copy of this [HealthData] with the given fields replaced.
   HealthData copyWith({

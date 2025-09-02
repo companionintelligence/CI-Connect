@@ -1,12 +1,8 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'health_data.dart';
-
-part 'contact_sync_data.g.dart';
 
 /// {@template contact_sync_data}
 /// Contact data with associated health information for syncing
 /// {@endtemplate}
-@JsonSerializable()
 class ContactSyncData {
   /// {@macro contact_sync_data}
   const ContactSyncData({
@@ -20,8 +16,22 @@ class ContactSyncData {
   });
 
   /// Creates a [ContactSyncData] from a JSON map.
-  factory ContactSyncData.fromJson(Map<String, dynamic> json) =>
-      _$ContactSyncDataFromJson(json);
+  factory ContactSyncData.fromJson(Map<String, dynamic> json) {
+    return ContactSyncData(
+      contactId: json['contactId'] as String,
+      studioId: json['studioId'] as String,
+      lastSyncTime: DateTime.parse(json['lastSyncTime'] as String),
+      healthData: (json['healthData'] as List<dynamic>)
+          .map((e) => HealthData.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      syncStatus: ContactSyncStatus.values.firstWhere(
+        (e) => e.name == json['syncStatus'],
+        orElse: () => ContactSyncStatus.pending,
+      ),
+      errorMessage: json['errorMessage'] as String?,
+      retryCount: json['retryCount'] as int? ?? 0,
+    );
+  }
 
   /// The contact ID being synced
   final String contactId;
@@ -45,7 +55,17 @@ class ContactSyncData {
   final int retryCount;
 
   /// Converts this [ContactSyncData] to a JSON map.
-  Map<String, dynamic> toJson() => _$ContactSyncDataToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'contactId': contactId,
+      'studioId': studioId,
+      'lastSyncTime': lastSyncTime.toIso8601String(),
+      'healthData': healthData.map((e) => e.toJson()).toList(),
+      'syncStatus': syncStatus.name,
+      'errorMessage': errorMessage,
+      'retryCount': retryCount,
+    };
+  }
 
   /// Creates a copy of this [ContactSyncData] with the given fields replaced.
   ContactSyncData copyWith({
@@ -103,22 +123,17 @@ class ContactSyncData {
 /// Status of contact sync operation
 enum ContactSyncStatus {
   /// Sync is pending
-  @JsonValue('pending')
   pending,
 
   /// Sync is in progress
-  @JsonValue('syncing')
   syncing,
 
   /// Sync completed successfully
-  @JsonValue('completed')
   completed,
 
   /// Sync failed
-  @JsonValue('failed')
   failed,
 
   /// Sync was cancelled
-  @JsonValue('cancelled')
   cancelled,
 }
