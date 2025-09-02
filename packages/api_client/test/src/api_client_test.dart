@@ -1,57 +1,62 @@
 import 'package:api_client/api_client.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+class MockDio extends Mock implements Dio {}
 class MockCIServerApiClient extends Mock implements CIServerApiClient {}
 class MockCalendarSyncService extends Mock implements CalendarSyncService {}
 
 void main() {
   group('ApiClient', () {
-    late MockFirebaseFirestore mockFirestore;
     late ApiClient apiClient;
 
     setUp(() {
-      mockFirestore = MockFirebaseFirestore();
-      apiClient = ApiClient(firestore: mockFirestore);
+      apiClient = ApiClient();
     });
 
     test('can be instantiated', () {
-      expect(ApiClient(firestore: mockFirestore), isNotNull);
+      expect(ApiClient(), isNotNull);
     });
 
-    test('generates ID using Firestore', () {
-      when(() => mockFirestore.generateId()).thenReturn('generated-id');
+    test('can be instantiated with custom base URL', () {
+      const customUrl = 'https://custom.ci-server.com';
+      final customApiClient = ApiClient(ciServerBaseUrl: customUrl);
+      
+      expect(customApiClient, isNotNull);
+      expect(customApiClient.ciServerBaseUrl, equals(customUrl));
+    });
 
-      final result = apiClient.generateId();
+    test('uses default base URL when none provided', () {
+      expect(apiClient.ciServerBaseUrl, equals('https://api.companion-intelligence.com'));
+    });
 
-      expect(result, equals('generated-id'));
-      verify(() => mockFirestore.generateId()).called(1);
+    test('generates unique ID', () {
+      final id1 = apiClient.generateId();
+      final id2 = apiClient.generateId();
+
+      expect(id1, isNotNull);
+      expect(id2, isNotNull);
+      expect(id1, isNot(equals(id2)));
+      expect(id1, matches(r'^\d+_\d+$'));
     });
 
     test('provides calendar sync service', () {
       expect(apiClient.calendarSync, isA<CalendarSyncService>());
     });
 
-    test('provides CI-Server API client', () {
-      expect(apiClient.ciServerApi, isA<CIServerApiClient>());
+    test('creates notification service', () {
+      final notificationService = apiClient.createNotificationService();
+      expect(notificationService, isA<NotificationService>());
     });
 
-    test('can be disposed', () {
-      expect(() => apiClient.dispose(), returnsNormally);
-    });
-
-    test('accepts custom CI-Server base URL', () {
+    test('accepts custom CI-Server base URL for services', () {
       const customUrl = 'https://custom.ci-server.com';
-      final customApiClient = ApiClient(
-        firestore: mockFirestore,
-        ciServerBaseUrl: customUrl,
-      );
+      final customApiClient = ApiClient(ciServerBaseUrl: customUrl);
 
-      expect(customApiClient, isNotNull);
       expect(customApiClient.calendarSync, isA<CalendarSyncService>());
-      expect(customApiClient.ciServerApi, isA<CIServerApiClient>());
+      
+      final notificationService = customApiClient.createNotificationService();
+      expect(notificationService, isA<NotificationService>());
     });
   });
 }
