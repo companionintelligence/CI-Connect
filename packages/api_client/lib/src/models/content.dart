@@ -1,9 +1,4 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'content.g.dart';
-
 /// Content model for CI-Server API
-@JsonSerializable()
 class Content {
   /// Creates a [Content] instance.
   const Content({
@@ -20,8 +15,26 @@ class Content {
   });
 
   /// Creates a [Content] from a JSON map.
-  factory Content.fromJson(Map<String, dynamic> json) =>
-      _$ContentFromJson(json);
+  factory Content.fromJson(Map<String, dynamic> json) {
+    return Content(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type: json['type'] as String,
+      filePath: json['filePath'] as String?,
+      fileSize: json['fileSize'] as int?,
+      mimeType: json['mimeType'] as String?,
+      description: json['description'] as String?,
+      tags: json['tags'] != null
+          ? List<String>.from(json['tags'] as List)
+          : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'] as String)
+          : null,
+    );
+  }
 
   /// Unique identifier for the content
   final String id;
@@ -54,7 +67,20 @@ class Content {
   final DateTime? updatedAt;
 
   /// Converts this instance to a JSON map.
-  Map<String, dynamic> toJson() => _$ContentToJson(this);
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'name': name,
+      'type': type,
+      if (filePath != null) 'filePath': filePath,
+      if (fileSize != null) 'fileSize': fileSize,
+      if (mimeType != null) 'mimeType': mimeType,
+      if (description != null) 'description': description,
+      if (tags != null) 'tags': tags,
+      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+    };
+  }
 
   @override
   String toString() {

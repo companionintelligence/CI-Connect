@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'models/models.dart';
 
 /// {@template api_client}
 /// CI-Connect API Client for CI-Server integration.
@@ -19,211 +20,373 @@ class ApiClient {
 
   final Dio _dio;
 
-  /// Get people endpoint
-  Future<Response<dynamic>> getPeople({
+  // People endpoints
+
+  /// Get all people with optional filtering and pagination
+  Future<List<Person>> getPeople({
     int? page,
     int? limit,
     Map<String, dynamic>? filters,
   }) async {
-    return _dio.get(
-      '/people',
-      queryParameters: {
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-        if (filters != null) ...filters,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/people',
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (limit != null) 'limit': limit,
+          if (filters != null) ...filters,
+        },
+      );
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Person.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw ApiException('Failed to get people: $e');
+    }
   }
 
-  /// Create a person
-  Future<Response<dynamic>> createPerson(Map<String, dynamic> data) async {
-    return _dio.post('/people', data: data);
+  /// Create a new person
+  Future<Person> createPerson(Person person) async {
+    try {
+      final response = await _dio.post('/people', data: person.toJson());
+      return Person.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to create person: $e');
+    }
   }
 
   /// Get person by ID
-  Future<Response<dynamic>> getPerson(String id) async {
-    return _dio.get('/people/$id');
+  Future<Person> getPerson(String id) async {
+    try {
+      final response = await _dio.get('/people/$id');
+      return Person.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to get person: $e');
+    }
   }
 
-  /// Update person
-  Future<Response<dynamic>> updatePerson(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
-    return _dio.put('/people/$id', data: data);
+  /// Update a person
+  Future<Person> updatePerson(String id, Person person) async {
+    try {
+      final response = await _dio.put('/people/$id', data: person.toJson());
+      return Person.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to update person: $e');
+    }
   }
 
-  /// Delete person
-  Future<Response<dynamic>> deletePerson(String id) async {
-    return _dio.delete('/people/$id');
+  /// Delete a person
+  Future<void> deletePerson(String id) async {
+    try {
+      await _dio.delete('/people/$id');
+    } catch (e) {
+      throw ApiException('Failed to delete person: $e');
+    }
   }
 
-  /// Get places endpoint
-  Future<Response<dynamic>> getPlaces({
+  // Places endpoints
+
+  /// Get all places with optional filtering and pagination
+  Future<List<Place>> getPlaces({
     int? page,
     int? limit,
     Map<String, dynamic>? filters,
   }) async {
-    return _dio.get(
-      '/places',
-      queryParameters: {
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-        if (filters != null) ...filters,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/places',
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (limit != null) 'limit': limit,
+          if (filters != null) ...filters,
+        },
+      );
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Place.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw ApiException('Failed to get places: $e');
+    }
   }
 
-  /// Create a place
-  Future<Response<dynamic>> createPlace(Map<String, dynamic> data) async {
-    return _dio.post('/places', data: data);
+  /// Create a new place
+  Future<Place> createPlace(Place place) async {
+    try {
+      final response = await _dio.post('/places', data: place.toJson());
+      return Place.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to create place: $e');
+    }
   }
 
   /// Get place by ID
-  Future<Response<dynamic>> getPlace(String id) async {
-    return _dio.get('/places/$id');
+  Future<Place> getPlace(String id) async {
+    try {
+      final response = await _dio.get('/places/$id');
+      return Place.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to get place: $e');
+    }
   }
 
-  /// Update place
-  Future<Response<dynamic>> updatePlace(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
-    return _dio.put('/places/$id', data: data);
+  /// Update a place
+  Future<Place> updatePlace(String id, Place place) async {
+    try {
+      final response = await _dio.put('/places/$id', data: place.toJson());
+      return Place.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to update place: $e');
+    }
   }
 
-  /// Delete place
-  Future<Response<dynamic>> deletePlaces(String id) async {
-    return _dio.delete('/places/$id');
+  /// Delete a place
+  Future<void> deletePlace(String id) async {
+    try {
+      await _dio.delete('/places/$id');
+    } catch (e) {
+      throw ApiException('Failed to delete place: $e');
+    }
   }
 
-  /// Get content endpoint
-  Future<Response<dynamic>> getContent({
+  // Content endpoints
+
+  /// Get all content with optional filtering and pagination
+  Future<List<Content>> getContent({
     int? page,
     int? limit,
     Map<String, dynamic>? filters,
   }) async {
-    return _dio.get(
-      '/content',
-      queryParameters: {
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-        if (filters != null) ...filters,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/content',
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (limit != null) 'limit': limit,
+          if (filters != null) ...filters,
+        },
+      );
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Content.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw ApiException('Failed to get content: $e');
+    }
   }
 
   /// Create content
-  Future<Response<dynamic>> createContent(Map<String, dynamic> data) async {
-    return _dio.post('/content', data: data);
+  Future<Content> createContent(Content content) async {
+    try {
+      final response = await _dio.post('/content', data: content.toJson());
+      return Content.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to create content: $e');
+    }
   }
 
   /// Get content by ID
-  Future<Response<dynamic>> getContentById(String id) async {
-    return _dio.get('/content/$id');
+  Future<Content> getContentById(String id) async {
+    try {
+      final response = await _dio.get('/content/$id');
+      return Content.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to get content: $e');
+    }
   }
 
   /// Update content
-  Future<Response<dynamic>> updateContent(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
-    return _dio.put('/content/$id', data: data);
+  Future<Content> updateContent(String id, Content content) async {
+    try {
+      final response = await _dio.put('/content/$id', data: content.toJson());
+      return Content.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to update content: $e');
+    }
   }
 
   /// Delete content
-  Future<Response<dynamic>> deleteContent(String id) async {
-    return _dio.delete('/content/$id');
+  Future<void> deleteContent(String id) async {
+    try {
+      await _dio.delete('/content/$id');
+    } catch (e) {
+      throw ApiException('Failed to delete content: $e');
+    }
   }
 
   /// Upload file content
-  Future<Response<dynamic>> uploadContent(
+  Future<Content> uploadContent(
     String filePath,
     Map<String, dynamic> metadata,
   ) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(filePath),
-      'metadata': metadata,
-    });
-    
-    return _dio.post('/content/upload', data: formData);
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+        'metadata': metadata,
+      });
+      
+      final response = await _dio.post('/content/upload', data: formData);
+      return Content.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to upload content: $e');
+    }
   }
 
-  /// Get contacts endpoint
-  Future<Response<dynamic>> getContacts({
+  // Contact endpoints
+
+  /// Get all contacts with optional filtering and pagination
+  Future<List<Contact>> getContacts({
     int? page,
     int? limit,
     Map<String, dynamic>? filters,
   }) async {
-    return _dio.get(
-      '/contact',
-      queryParameters: {
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-        if (filters != null) ...filters,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/contact',
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (limit != null) 'limit': limit,
+          if (filters != null) ...filters,
+        },
+      );
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Contact.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw ApiException('Failed to get contacts: $e');
+    }
   }
 
-  /// Create a contact
-  Future<Response<dynamic>> createContact(Map<String, dynamic> data) async {
-    return _dio.post('/contact', data: data);
+  /// Create a new contact
+  Future<Contact> createContact(Contact contact) async {
+    try {
+      final response = await _dio.post('/contact', data: contact.toJson());
+      return Contact.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to create contact: $e');
+    }
   }
 
   /// Get contact by ID
-  Future<Response<dynamic>> getContact(String id) async {
-    return _dio.get('/contact/$id');
+  Future<Contact> getContact(String id) async {
+    try {
+      final response = await _dio.get('/contact/$id');
+      return Contact.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to get contact: $e');
+    }
   }
 
-  /// Update contact
-  Future<Response<dynamic>> updateContact(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
-    return _dio.put('/contact/$id', data: data);
+  /// Update a contact
+  Future<Contact> updateContact(String id, Contact contact) async {
+    try {
+      final response = await _dio.put('/contact/$id', data: contact.toJson());
+      return Contact.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to update contact: $e');
+    }
   }
 
-  /// Delete contact
-  Future<Response<dynamic>> deleteContact(String id) async {
-    return _dio.delete('/contact/$id');
+  /// Delete a contact
+  Future<void> deleteContact(String id) async {
+    try {
+      await _dio.delete('/contact/$id');
+    } catch (e) {
+      throw ApiException('Failed to delete contact: $e');
+    }
   }
 
-  /// Get things endpoint
-  Future<Response<dynamic>> getThings({
+  // Things endpoints
+
+  /// Get all things with optional filtering and pagination
+  Future<List<Thing>> getThings({
     int? page,
     int? limit,
     Map<String, dynamic>? filters,
   }) async {
-    return _dio.get(
-      '/things',
-      queryParameters: {
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-        if (filters != null) ...filters,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/things',
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (limit != null) 'limit': limit,
+          if (filters != null) ...filters,
+        },
+      );
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Thing.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw ApiException('Failed to get things: $e');
+    }
   }
 
-  /// Create a thing
-  Future<Response<dynamic>> createThing(Map<String, dynamic> data) async {
-    return _dio.post('/things', data: data);
+  /// Create a new thing
+  Future<Thing> createThing(Thing thing) async {
+    try {
+      final response = await _dio.post('/things', data: thing.toJson());
+      return Thing.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to create thing: $e');
+    }
   }
 
   /// Get thing by ID
-  Future<Response<dynamic>> getThing(String id) async {
-    return _dio.get('/things/$id');
+  Future<Thing> getThing(String id) async {
+    try {
+      final response = await _dio.get('/things/$id');
+      return Thing.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to get thing: $e');
+    }
   }
 
-  /// Update thing
-  Future<Response<dynamic>> updateThing(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
-    return _dio.put('/things/$id', data: data);
+  /// Update a thing
+  Future<Thing> updateThing(String id, Thing thing) async {
+    try {
+      final response = await _dio.put('/things/$id', data: thing.toJson());
+      return Thing.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw ApiException('Failed to update thing: $e');
+    }
   }
 
-  /// Delete thing
-  Future<Response<dynamic>> deleteThing(String id) async {
-    return _dio.delete('/things/$id');
+  /// Delete a thing
+  Future<void> deleteThing(String id) async {
+    try {
+      await _dio.delete('/things/$id');
+    } catch (e) {
+      throw ApiException('Failed to delete thing: $e');
+    }
   }
+}
+
+/// Exception thrown by the API client
+class ApiException implements Exception {
+  /// Creates an [ApiException] with a message.
+  const ApiException(this.message);
+
+  /// The exception message
+  final String message;
+
+  @override
+  String toString() => 'ApiException: $message';
 }

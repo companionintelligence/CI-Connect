@@ -1,9 +1,4 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'place.g.dart';
-
 /// Place model for CI-Server API
-@JsonSerializable()
 class Place {
   /// Creates a [Place] instance.
   const Place({
@@ -18,7 +13,22 @@ class Place {
   });
 
   /// Creates a [Place] from a JSON map.
-  factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
+  factory Place.fromJson(Map<String, dynamic> json) {
+    return Place(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      address: json['address'] as String?,
+      latitude: json['latitude'] as double?,
+      longitude: json['longitude'] as double?,
+      description: json['description'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'] as String)
+          : null,
+    );
+  }
 
   /// Unique identifier for the place
   final String id;
@@ -45,7 +55,18 @@ class Place {
   final DateTime? updatedAt;
 
   /// Converts this instance to a JSON map.
-  Map<String, dynamic> toJson() => _$PlaceToJson(this);
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'name': name,
+      if (address != null) 'address': address,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (description != null) 'description': description,
+      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+    };
+  }
 
   @override
   String toString() {
