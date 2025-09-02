@@ -12,3 +12,6 @@ export 'thing.dart';
 // Models for contacts sync functionality
 export 'contact_sync_data.dart';
 export 'health_data.dart';
+
+// Database models
+export '../database/models/models.dart';
