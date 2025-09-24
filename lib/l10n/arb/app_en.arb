@@ -1,5 +1,9 @@
 {
     "@@locale": "en",
+    "appTitle": "Companion Connect",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
     "counterAppBarTitle": "Counter",
     "@counterAppBarTitle": {
         "description": "Text shown in the AppBar of the Counter Page"

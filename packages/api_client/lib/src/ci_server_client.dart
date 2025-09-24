@@ -211,6 +211,102 @@ class CIServerClient {
       throw CIServerException('Failed to get all contacts sync data: ${e.message}');
     }
   }
+
+  /// Creates a contact in CI-Server
+  Future<Map<String, dynamic>?> createContact({
+    required String studioId,
+    required Map<String, dynamic> contactData,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/contact',
+        data: {
+          ...contactData,
+          'studioId': studioId,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>?;
+      }
+      
+      return null;
+    } on DioException catch (e) {
+      throw CIServerException('Failed to create contact: ${e.message}');
+    }
+  }
+
+  /// Creates a person in CI-Server
+  Future<Map<String, dynamic>?> createPerson({
+    required String studioId,
+    required Map<String, dynamic> personData,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/people',
+        data: {
+          ...personData,
+          'studioId': studioId,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>?;
+      }
+      
+      return null;
+    } on DioException catch (e) {
+      throw CIServerException('Failed to create person: ${e.message}');
+    }
+  }
+
+  /// Creates content in CI-Server
+  Future<Map<String, dynamic>?> createContent({
+    required String studioId,
+    required Map<String, dynamic> contentData,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/content',
+        data: {
+          ...contentData,
+          'studioId': studioId,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>?;
+      }
+      
+      return null;
+    } on DioException catch (e) {
+      throw CIServerException('Failed to create content: ${e.message}');
+    }
+  }
+
+  /// Creates a place in CI-Server
+  Future<Map<String, dynamic>?> createPlace({
+    required String studioId,
+    required Map<String, dynamic> placeData,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/places',
+        data: {
+          ...placeData,
+          'studioId': studioId,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>?;
+      }
+      
+      return null;
+    } on DioException catch (e) {
+      throw CIServerException('Failed to create place: ${e.message}');
+    }
+  }
 }
 
 /// Exception thrown when CI-Server API operations fail
