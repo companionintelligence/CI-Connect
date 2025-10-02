@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:api_client/api_client.dart';
 import 'package:bloc/bloc.dart';
+import 'package:companion_connect/app/bloc/app_bloc.dart';
 import 'package:companion_connect/insights/bloc/insights_event.dart';
 import 'package:companion_connect/insights/bloc/insights_state.dart';
 import 'package:companion_connect/insights/models/insight.dart';
@@ -11,11 +12,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   /// Creates an [InsightsBloc] instance.
   InsightsBloc({
     required this.apiClient,
+    required this.appBloc,
   }) : super(const InsightsInitial()) {
     on<LoadInsights>(_onLoadInsights);
   }
 
   final ApiClient apiClient;
+  final AppBloc appBloc;
 
   /// Handles load insights event
   Future<void> _onLoadInsights(
@@ -24,6 +27,15 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   ) async {
     emit(const InsightsLoading());
 
+    // Get the current access token from AppBloc
+    final appState = appBloc.state;
+    if (appState is! AppAuthenticated) {
+      emit(const InsightsError(message: 'User not authenticated'));
+      return;
+    }
+
+    final accessToken = appState.session.accessToken;
+
     try {
       // Create a new Dio instance for the request
       final dio = Dio();
@@ -31,9 +43,9 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       // DEBUG: Print request details
       print('=== INSIGHTS API REQUEST ===');
       print('URL: ${apiClient.ciServerBaseUrl}/answers');
-      print('Access Token: ${event.accessToken}');
-      print('Token Length: ${event.accessToken.length}');
-      print('Authorization Header: Bearer ${event.accessToken}');
+      print('Access Token: $accessToken');
+      print('Token Length: ${accessToken.length}');
+      print('Authorization Header: Bearer $accessToken');
       print('============================');
 
       // Make GET request to /answers endpoint with authorization header
@@ -43,7 +55,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
           '${apiClient.ciServerBaseUrl}/answers',
           options: Options(
             headers: {
-              'Authorization': 'Bearer ${event.accessToken}',
+              'Authorization': 'Bearer $accessToken',
               'Content-Type': 'application/json',
             },
             responseType: ResponseType.json,

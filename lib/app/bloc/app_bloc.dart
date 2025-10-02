@@ -104,6 +104,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final String apiUrl;
   Timer? _tokenRefreshTimer;
   AuthSession? _currentSession;
+  String? _savedUsername;
+  String? _savedPassword;
 
   /// Handles app start event
   Future<void> _onAppStarted(AppStarted event, Emitter<AppState> emit) async {
@@ -121,6 +123,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
             final sessionJson = jsonDecode(sessionData) as Map<String, dynamic>;
             _currentSession = AuthSession.fromJson(sessionJson);
 
+            // Load saved credentials
+            _savedUsername = prefs.getString('saved_username');
+            _savedPassword = prefs.getString('saved_password');
+            print(
+              '📱 Loaded saved credentials: ${_savedUsername != null ? 'Yes' : 'No'}',
+            );
+
+            // Start token refresh timer
+            _startTokenRefreshTimer();
             // Immediately refresh the access token on app start
             await _refreshAccessTokenOnStart(emit);
             return;
@@ -155,10 +166,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       final session = await authRepository.authenticate(credentials);
       _currentSession = session;
 
-      // Store session data
+      // Save credentials for automatic re-authentication
+      _savedUsername = event.username;
+      _savedPassword = event.password;
+
+      // Store session data and credentials
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('session_token', session.sessionToken);
       await prefs.setString('session_data', jsonEncode(session.toJson()));
+      await prefs.setString('saved_username', event.username);
+      await prefs.setString('saved_password', event.password);
 
       print('✅ Login successful - access token is fresh');
       emit(AppAuthenticated(session: session));
@@ -273,9 +290,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       emit(AppAuthenticated(session: _currentSession!));
     } on Exception catch (e) {
       print('❌ Token refresh failed on app start: $e');
-      // If token refresh fails, logout user
-      await _clearStoredSession();
-      emit(const AppUnauthenticated());
+      // Try automatic re-authentication with saved credentials
+      await _attemptReAuthenticationOnStart(emit);
     }
   }
 
@@ -302,7 +318,75 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       add(const AppStarted()); // This will trigger state update
     } on Exception catch (e) {
       print('❌ Token refresh failed (periodic): $e');
-      // If token refresh fails, logout user
+      // Try automatic re-authentication with saved credentials
+      await _attemptReAuthentication();
+    }
+  }
+
+  /// Attempts automatic re-authentication with saved credentials on app start
+  Future<void> _attemptReAuthenticationOnStart(Emitter<AppState> emit) async {
+    if (_savedUsername == null || _savedPassword == null) {
+      print('❌ No saved credentials available for re-authentication on start');
+      await _clearStoredSession();
+      emit(const AppUnauthenticated());
+      return;
+    }
+
+    try {
+      print('🔄 Attempting automatic re-authentication on app start...');
+      final credentials = AuthCredentials(
+        username: _savedUsername!,
+        password: _savedPassword!,
+      );
+
+      final session = await authRepository.authenticate(credentials);
+      _currentSession = session;
+
+      // Update stored session data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('session_token', session.sessionToken);
+      await prefs.setString('session_data', jsonEncode(session.toJson()));
+
+      print('✅ Automatic re-authentication successful on app start');
+      emit(AppAuthenticated(session: session));
+    } on Exception catch (e) {
+      print('❌ Automatic re-authentication failed on app start: $e');
+      await _clearStoredSession();
+      emit(const AppUnauthenticated());
+    }
+  }
+
+  /// Attempts automatic re-authentication with saved credentials
+  Future<void> _attemptReAuthentication() async {
+    if (_savedUsername == null || _savedPassword == null) {
+      print('❌ No saved credentials available for re-authentication');
+      add(const AppLogoutRequested());
+      return;
+    }
+
+    try {
+      print(
+        '🔄 Attempting automatic re-authentication with saved credentials...',
+      );
+      final credentials = AuthCredentials(
+        username: _savedUsername!,
+        password: _savedPassword!,
+      );
+
+      final session = await authRepository.authenticate(credentials);
+      _currentSession = session;
+
+      // Update stored session data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('session_token', session.sessionToken);
+      await prefs.setString('session_data', jsonEncode(session.toJson()));
+
+      print('✅ Automatic re-authentication successful');
+      // Emit updated authenticated state
+      add(const AppStarted()); // This will trigger state update
+    } on Exception catch (e) {
+      print('❌ Automatic re-authentication failed: $e');
+      // If re-authentication fails, logout user
       add(const AppLogoutRequested());
     }
   }
@@ -313,7 +397,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('session_token');
       await prefs.remove('session_data');
+      await prefs.remove('saved_username');
+      await prefs.remove('saved_password');
       _currentSession = null;
+      _savedUsername = null;
+      _savedPassword = null;
     } catch (e) {
       // Ignore errors when clearing session
     }

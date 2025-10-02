@@ -10,21 +10,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Insights page for displaying AI insights from the CI server
 class InsightsPage extends StatelessWidget {
   /// Creates an [InsightsPage] instance.
-  const InsightsPage({required this.accessToken, super.key});
-
-  final String accessToken;
+  const InsightsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => InsightsBloc(
-        apiClient: ApiClient(
-          ciServerBaseUrl: const String.fromEnvironment(
-            'API_URL',
-            defaultValue: 'http://192.168.1.2:3030',
-          ),
-        ),
-      )..add(LoadInsights(accessToken: accessToken)),
+        apiClient: context.read<ApiClient>(),
+        appBloc: context.read<AppBloc>(),
+      )..add(const LoadInsights()),
       child: const InsightsView(),
     );
   }
@@ -82,16 +76,9 @@ class InsightsView extends StatelessWidget {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          // Get the access token from the parent widget
-                          final insightsPage = context
-                              .findAncestorWidgetOfExactType<InsightsPage>();
-                          if (insightsPage != null) {
-                            context.read<InsightsBloc>().add(
-                              LoadInsights(
-                                accessToken: insightsPage.accessToken,
-                              ),
-                            );
-                          }
+                          context.read<InsightsBloc>().add(
+                            const LoadInsights(),
+                          );
                         },
                         child: const Text('Retry'),
                       ),
@@ -102,15 +89,9 @@ class InsightsView extends StatelessWidget {
                           context.read<AppBloc>().add(const AppRefreshToken());
                           // Wait a moment then retry
                           Future.delayed(const Duration(seconds: 1), () {
-                            final insightsPage = context
-                                .findAncestorWidgetOfExactType<InsightsPage>();
-                            if (insightsPage != null) {
-                              context.read<InsightsBloc>().add(
-                                LoadInsights(
-                                  accessToken: insightsPage.accessToken,
-                                ),
-                              );
-                            }
+                            context.read<InsightsBloc>().add(
+                              const LoadInsights(),
+                            );
                           });
                         },
                         child: const Text('Refresh Token & Retry'),

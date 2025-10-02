@@ -1,7 +1,9 @@
+import 'package:api_client/api_client.dart';
 import 'package:companion_connect/app/bloc/app_bloc.dart';
 import 'package:companion_connect/app/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 /// Widget that provides all app dependencies and blocs
 class AppProvidersWidget extends StatelessWidget {
@@ -19,17 +21,37 @@ class AppProvidersWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final providers = AppProviders(apiUrl: apiUrl);
 
-    return MultiBlocProvider(
+    return MultiProvider(
       providers: [
-        BlocProvider<AppBloc>(
-          create: (context) => AppBloc(
-            authRepository: providers.createAuthRepository(),
-            connectivityService: providers.createConnectivityService(),
-            apiUrl: apiUrl,
-          ),
+        // Provide ApiClient
+        Provider<ApiClient>(
+          create: (context) => providers.createApiClient(),
+        ),
+        // Provide AuthService
+        Provider<AuthService>(
+          create: (context) => providers.createAuthService(),
+        ),
+        // Provide ConnectivityService
+        Provider<ConnectivityService>(
+          create: (context) => providers.createConnectivityService(),
+        ),
+        // Provide EnhancedSyncClient
+        Provider<EnhancedSyncClient>(
+          create: (context) => providers.createEnhancedSyncClient(),
         ),
       ],
-      child: child,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AppBloc>(
+            create: (context) => AppBloc(
+              authRepository: providers.createAuthRepository(),
+              connectivityService: providers.createConnectivityService(),
+              apiUrl: apiUrl,
+            ),
+          ),
+        ],
+        child: child,
+      ),
     );
   }
 }
