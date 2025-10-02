@@ -1,4 +1,4 @@
-import 'health_data.dart';
+import 'package:api_client/src/models/health_data.dart';
 
 /// {@template contact_sync_data}
 /// Contact data with associated health information for syncing

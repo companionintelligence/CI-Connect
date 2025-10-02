@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import '../models/models.dart';
-import '../services/contacts_sync_service.dart';
+import 'package:api_client/src/models/models.dart';
+import 'package:api_client/src/services/contacts_sync_service.dart';
 
 /// {@template contacts_sync_repository}
 /// Repository for managing contact sync operations
@@ -55,7 +55,7 @@ class ApiContactsSyncRepository implements ContactsSyncRepository {
     required String contactId,
     required List<HealthData> healthData,
   }) async {
-    return await _contactsSyncService.syncContactHealthData(
+    return _contactsSyncService.syncContactHealthData(
       studioId: studioId,
       contactId: contactId,
       healthData: healthData,
@@ -66,7 +66,7 @@ class ApiContactsSyncRepository implements ContactsSyncRepository {
   Future<List<ContactSyncData>> syncAllContactsHealthData({
     required String studioId,
   }) async {
-    return await _contactsSyncService.syncAllContactsHealthData(
+    return _contactsSyncService.syncAllContactsHealthData(
       studioId: studioId,
     );
   }
@@ -77,7 +77,7 @@ class ApiContactsSyncRepository implements ContactsSyncRepository {
     required String contactId,
     int maxRetries = 3,
   }) async {
-    return await _contactsSyncService.retrySyncContactHealthData(
+    return _contactsSyncService.retrySyncContactHealthData(
       studioId: studioId,
       contactId: contactId,
       maxRetries: maxRetries,
@@ -89,7 +89,7 @@ class ApiContactsSyncRepository implements ContactsSyncRepository {
     required String studioId,
     required String contactId,
   }) async {
-    return await _contactsSyncService.getContactSyncStatus(
+    return _contactsSyncService.getContactSyncStatus(
       studioId: studioId,
       contactId: contactId,
     );
@@ -99,7 +99,7 @@ class ApiContactsSyncRepository implements ContactsSyncRepository {
   Future<List<ContactSyncData>> getAllContactsSyncStatus({
     required String studioId,
   }) async {
-    return await _contactsSyncService.getAllContactsSyncStatus(
+    return _contactsSyncService.getAllContactsSyncStatus(
       studioId: studioId,
     );
   }

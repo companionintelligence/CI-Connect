@@ -34,7 +34,7 @@ class DatabaseProvider {
     final databasesPath = await getDatabasesPath();
     final dbPath = path.join(databasesPath, _databaseName);
 
-    return await openDatabase(
+    return openDatabase(
       dbPath,
       version: _databaseVersion,
       onCreate: _onCreate,

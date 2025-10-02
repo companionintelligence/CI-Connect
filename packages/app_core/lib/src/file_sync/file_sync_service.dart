@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:api_client/api_client.dart';
+import 'package:api_client/api_client.dart' as api_client;
 import 'package:app_core/src/file_sync/models/file_type.dart';
 import 'package:app_core/src/file_sync/models/sync_result.dart';
 import 'package:path/path.dart' as path;
@@ -9,9 +9,10 @@ import 'package:permission_handler/permission_handler.dart';
 /// Service for syncing files to CI-Server
 class FileSyncService {
   /// Creates a [FileSyncService] instance.
-  FileSyncService({required ApiClient apiClient}) : _apiClient = apiClient;
+  FileSyncService({required api_client.ApiClient apiClient})
+    : _apiClient = apiClient;
 
-  final ApiClient _apiClient;
+  final api_client.ApiClient _apiClient;
 
   /// Request necessary permissions for file access
   Future<bool> requestPermissions() async {
@@ -28,8 +29,8 @@ class FileSyncService {
     }
 
     // Return true if at least storage permission is granted
-    return results[Permission.storage]?.isGranted == true ||
-        results[Permission.manageExternalStorage]?.isGranted == true;
+    return (results[Permission.storage]?.isGranted ?? false) ||
+        (results[Permission.manageExternalStorage]?.isGranted ?? false);
   }
 
   /// Check if permissions are granted
@@ -44,11 +45,11 @@ class FileSyncService {
   /// Discover files of specified types on device
   Future<List<File>> discoverFiles(List<FileType> fileTypes) async {
     final files = <File>[];
-    
+
     try {
       // Get common directories to scan
       final directories = await _getDirectoriesToScan();
-      
+
       for (final directory in directories) {
         if (await directory.exists()) {
           await _scanDirectory(directory, fileTypes, files);
@@ -57,14 +58,14 @@ class FileSyncService {
     } catch (e) {
       throw Exception('Failed to discover files: $e');
     }
-    
+
     return files;
   }
 
   /// Get list of directories to scan for files
   Future<List<Directory>> _getDirectoriesToScan() async {
     final directories = <Directory>[];
-    
+
     try {
       // External storage directories
       if (Platform.isAndroid) {
@@ -76,7 +77,7 @@ class FileSyncService {
           directories.add(Directory('${external.path}/Download'));
           directories.add(Directory('${external.path}/Documents'));
         }
-        
+
         // Try to access shared storage directories
         directories.addAll([
           Directory('/storage/emulated/0/DCIM'),
@@ -86,11 +87,11 @@ class FileSyncService {
           Directory('/storage/emulated/0/Documents'),
         ]);
       }
-      
+
       if (Platform.isIOS) {
         final documentsDir = await getApplicationDocumentsDirectory();
         directories.add(documentsDir);
-        
+
         // iOS Photos library would require photo_manager plugin
         // For now, focus on documents directory
       }
@@ -99,7 +100,7 @@ class FileSyncService {
       final documentsDir = await getApplicationDocumentsDirectory();
       directories.add(documentsDir);
     }
-    
+
     return directories;
   }
 
@@ -111,7 +112,7 @@ class FileSyncService {
   ) async {
     try {
       final entities = await directory.list(recursive: true).toList();
-      
+
       for (final entity in entities) {
         if (entity is File) {
           final fileType = _getFileType(entity.path);
@@ -128,13 +129,13 @@ class FileSyncService {
   /// Determine file type based on extension
   FileType? _getFileType(String filePath) {
     final extension = path.extension(filePath).toLowerCase();
-    
+
     for (final type in FileType.values) {
       if (type.extensions.contains(extension)) {
         return type;
       }
     }
-    
+
     return null;
   }
 
@@ -150,12 +151,12 @@ class FileSyncService {
       errors: [],
     );
 
-    for (int i = 0; i < files.length; i++) {
+    for (var i = 0; i < files.length; i++) {
       final file = files[i];
-      
+
       try {
         onProgress?.call(i + 1, files.length, path.basename(file.path));
-        
+
         await _syncSingleFile(file);
         result.syncedFiles++;
       } catch (e) {
@@ -172,7 +173,7 @@ class FileSyncService {
     final fileName = path.basename(file.path);
     final fileType = _getFileType(file.path);
     final fileStat = await file.stat();
-    
+
     final metadata = {
       'name': fileName,
       'type': fileType?.name ?? 'unknown',

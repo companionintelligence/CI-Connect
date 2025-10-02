@@ -23,21 +23,27 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
   Future<void> _initializeNotifications() async {
     try {
       // Create API client with CI-Server URL
-      final apiClient = ApiClient(
-        ciServerUrl: 'https://api.ci-server.example.com', // Replace with actual URL
+      const apiUrl = String.fromEnvironment(
+        'API_URL',
+        defaultValue: 'http://192.168.1.2:3030',
       );
-      
-      _notificationService = apiClient.createNotificationService();
-      
+      final apiClient = ApiClient(
+        ciServerBaseUrl: apiUrl,
+      );
+
+      _notificationService = NotificationService(
+        baseUrl: apiClient.ciServerBaseUrl,
+      );
+
       // Initialize and listen for notifications
       await _notificationService!.initialize();
-      
+
       _notificationService!.messageStream.listen((notification) {
         setState(() {
           _notifications.insert(0, notification);
         });
       });
-      
+
       setState(() {
         _isInitialized = true;
       });
@@ -50,11 +56,13 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
 
   Future<void> _loadPeople() async {
     if (_notificationService == null) return;
-    
+
     try {
       final people = await _notificationService!.getPeople();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Loaded ${people.length} people from CI-Server')),
+        SnackBar(
+          content: Text('Loaded ${people.length} people from CI-Server'),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,11 +73,13 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
 
   Future<void> _loadPlaces() async {
     if (_notificationService == null) return;
-    
+
     try {
       final places = await _notificationService!.getPlaces();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Loaded ${places.length} places from CI-Server')),
+        SnackBar(
+          content: Text('Loaded ${places.length} places from CI-Server'),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,11 +90,13 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
 
   Future<void> _loadThings() async {
     if (_notificationService == null) return;
-    
+
     try {
       final things = await _notificationService!.getThings();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Loaded ${things.length} things from CI-Server')),
+        SnackBar(
+          content: Text('Loaded ${things.length} things from CI-Server'),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -107,24 +119,26 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status indicator
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Icon(
-                      _isInitialized ? Icons.check_circle : Icons.hourglass_empty,
+                      _isInitialized
+                          ? Icons.check_circle
+                          : Icons.hourglass_empty,
                       color: _isInitialized ? Colors.green : Colors.orange,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _isInitialized 
-                          ? 'Connected to CI-Server' 
+                      _isInitialized
+                          ? 'Connected to CI-Server'
                           : 'Connecting to CI-Server...',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -132,9 +146,9 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // API endpoint buttons
             Text(
               'CI-Server API Endpoints',
@@ -162,9 +176,9 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Notifications list
             Text(
               'Notifications (${_notifications.length})',
@@ -188,7 +202,9 @@ class _NotificationDemoPageState extends State<NotificationDemoPage> {
                             trailing: notification.timestamp != null
                                 ? Text(
                                     '${notification.timestamp!.hour}:${notification.timestamp!.minute.toString().padLeft(2, '0')}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   )
                                 : null,
                           ),

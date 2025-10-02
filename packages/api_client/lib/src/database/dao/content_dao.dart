@@ -1,6 +1,5 @@
-import '../models/models.dart';
-import '../../models/models.dart';
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/models/models.dart';
 
 /// {@template content_dao}
 /// Data Access Object for Content entities with caching support.
@@ -91,6 +90,23 @@ class CachedContent extends CachedEntity {
     super.isDirty,
   });
 
+  /// Creates from API Content model
+  factory CachedContent.fromContent(Content content, {bool isDirty = false}) {
+    return CachedContent(
+      id: content.id,
+      name: content.name,
+      type: content.type,
+      filePath: content.filePath,
+      fileSize: content.fileSize,
+      mimeType: content.mimeType,
+      description: content.description,
+      tags: content.tags,
+      createdAt: content.createdAt,
+      updatedAt: content.updatedAt,
+      isDirty: isDirty,
+    );
+  }
+
   final String name;
   final String type;
   final String? filePath;
@@ -114,23 +130,6 @@ class CachedContent extends CachedEntity {
       tags: tags,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  /// Creates from API Content model
-  factory CachedContent.fromContent(Content content, {bool isDirty = false}) {
-    return CachedContent(
-      id: content.id,
-      name: content.name,
-      type: content.type,
-      filePath: content.filePath,
-      fileSize: content.fileSize,
-      mimeType: content.mimeType,
-      description: content.description,
-      tags: content.tags,
-      createdAt: content.createdAt,
-      updatedAt: content.updatedAt,
-      isDirty: isDirty,
     );
   }
 

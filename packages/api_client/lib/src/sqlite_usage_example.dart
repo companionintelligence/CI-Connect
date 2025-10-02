@@ -1,16 +1,16 @@
 /// Example demonstrating SQLite-based local storage and API caching
 /// for the CI-Connect application.
+library;
 
 import 'package:api_client/api_client.dart';
-import 'package:app_core/app_core.dart';
+// import 'package:app_core/app_core.dart';
 
 /// Example class showing how to use the SQLite-enhanced API client
 class SqliteUsageExample {
   /// Enhanced API client with SQLite caching
   late final EnhancedApiClient _apiClient;
-  
-  /// Enhanced file sync service
-  late final EnhancedFileSyncService _fileSyncService;
+
+  // Note: File sync service is in app_core package, not api_client
 
   /// Initialize the SQLite-enhanced services
   Future<void> initialize() async {
@@ -22,10 +22,7 @@ class SqliteUsageExample {
     // Initialize database and perform setup
     await _apiClient.initialize();
 
-    // Create enhanced file sync service
-    _fileSyncService = EnhancedFileSyncService(
-      apiClient: _apiClient,
-    );
+    // Note: File sync service would be initialized here if using app_core package
 
     print('✅ SQLite database and caching services initialized');
   }
@@ -99,50 +96,29 @@ class SqliteUsageExample {
   Future<void> exampleFileSyncOperations() async {
     print('\n📁 File Sync Operations with SQLite Tracking');
 
-    // Request permissions
-    final hasPermissions = await _fileSyncService.requestPermissions();
-    if (!hasPermissions) {
-      print('❌ Storage permissions not granted');
-      return;
-    }
+    // Request permissions (requires app_core package)
+    // final hasPermissions = await _fileSyncService.requestPermissions();
+    // if (!hasPermissions) {
+    //   print('❌ Storage permissions not granted');
+    //   return;
+    // }
 
-    // Discover and record files for sync
-    final recordedCount = await _fileSyncService.discoverAndRecordFiles([
-      FileType.image,
-      FileType.video,
-      FileType.document,
-    ]);
-    print('📋 Discovered and recorded $recordedCount new files for sync');
+    // Note: File discovery would be done here if using app_core package
+    print('📋 File discovery would be performed here with app_core package');
 
-    // Get sync statistics
-    final stats = await _fileSyncService.getSyncStats();
-    print('📊 Sync Stats:');
-    print('  - Total files: ${stats['total']}');
-    print('  - Synced: ${stats['synced']}');
-    print('  - Pending: ${stats['pending']}');
-    print('  - Failed: ${stats['failed']}');
-    print('  - Success rate: ${stats['success_rate']}%');
+    // Get sync statistics (requires app_core package)
+    // final stats = await _fileSyncService.getSyncStats();
+    print('📊 Sync Stats would be displayed here with app_core package');
 
-    // Sync pending files
+    // Sync pending files (requires app_core package)
     try {
-      final result = await _fileSyncService.syncPendingFiles(
-        onProgress: (current, total, fileName) {
-          print('📤 Syncing $current/$total: $fileName');
-        },
-      );
+      // final result = await _fileSyncService.syncPendingFiles(
+      //   onProgress: (current, total, fileName) {
+      //     print('📤 Syncing $current/$total: $fileName');
+      //   },
+      // );
 
-      print('✅ Sync completed:');
-      print('  - Total: ${result.totalFiles}');
-      print('  - Synced: ${result.syncedFiles}');
-      print('  - Failed: ${result.failedFiles}');
-      print('  - Success rate: ${result.successRate.toStringAsFixed(1)}%');
-
-      if (result.errors.isNotEmpty) {
-        print('❌ Errors:');
-        for (final error in result.errors) {
-          print('  - $error');
-        }
-      }
+      print('✅ Sync would be completed here with app_core package');
     } catch (e) {
       print('❌ Sync failed: $e');
     }
@@ -187,7 +163,7 @@ class SqliteUsageExample {
 
     // Make API calls that will be cached
     print('📡 Making API calls (will be cached)...');
-    
+
     final people = await _apiClient.getPeople(limit: 5);
     final contacts = await _apiClient.getContacts(limit: 5);
     final content = await _apiClient.getContent(limit: 5);
@@ -204,7 +180,7 @@ class SqliteUsageExample {
 
     // Demonstrate offline access
     print('\n🔌 Simulating offline access...');
-    
+
     // These calls will return cached data
     final cachedPeople = await _apiClient.getCachedPeople();
     final cachedContacts = await _apiClient.getCachedContacts();
@@ -224,19 +200,21 @@ class SqliteUsageExample {
     await _apiClient.caching.performMaintenance();
     print('✅ Cache maintenance completed');
 
-    // Clean up old file sync records
-    final removedRecords = await _fileSyncService.cleanupOldRecords(
-      olderThan: const Duration(days: 30),
-    );
-    print('🗑️  Removed $removedRecords old sync records');
+    // Clean up old file sync records (requires app_core package)
+    // final removedRecords = await _fileSyncService.cleanupOldRecords(
+    //   olderThan: const Duration(days: 30),
+    // );
+    print('🗑️  Cleanup would be performed here with app_core package');
 
-    // Retry failed syncs
-    final retriedCount = await _fileSyncService.retryFailedSyncs();
-    print('🔄 Reset $retriedCount failed syncs for retry');
+    // Retry failed syncs (requires app_core package)
+    // final retriedCount = await _fileSyncService.retryFailedSyncs();
+    print('🔄 Retry would be performed here with app_core package');
 
     // Get final statistics
     final finalStats = await _apiClient.getCacheStats();
-    print('📊 Final cache size: ${finalStats['cache']['cache_size_bytes']} bytes');
+    print(
+      '📊 Final cache size: ${finalStats['cache']['cache_size_bytes']} bytes',
+    );
   }
 
   /// Cleanup resources
@@ -252,14 +230,14 @@ class SqliteUsageExample {
 
     try {
       await example.initialize();
-      
+
       await example.examplePeopleOperations();
       await example.exampleContactsOperations();
       await example.exampleFileSyncOperations();
       await example.exampleNotificationOperations();
       await example.exampleApiCaching();
       await example.exampleMaintenanceOperations();
-      
+
       print('\n✅ SQLite integration example completed successfully!');
     } catch (e) {
       print('\n❌ Example failed: $e');

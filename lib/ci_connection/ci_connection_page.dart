@@ -33,27 +33,24 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
     });
 
     try {
-      final connected = await _apiClient.isConnectedToCiServer();
-      Map<String, dynamic>? status;
-      
-      if (connected) {
-        status = await _apiClient.getCiServerStatus();
-      }
+      // Test connection by trying to get people
+      final people = await _apiClient.getPeople(limit: 1);
 
       setState(() {
-        _isConnected = connected;
-        _serverStatus = status;
+        _isConnected = true;
+        _serverStatus = {
+          'people_count': people.length,
+          'base_url': _apiClient.ciServerBaseUrl,
+        };
         _isLoading = false;
-        _lastMessage = connected 
-          ? 'Connected to CI Server successfully!' 
-          : 'Failed to connect to CI Server';
+        _lastMessage = 'Connected to CI Server successfully!';
       });
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() {
         _isConnected = false;
         _serverStatus = null;
         _isLoading = false;
-        _lastMessage = 'Error: $e';
+        _lastMessage = 'Failed to connect to CI Server: $e';
       });
     }
   }
@@ -65,21 +62,22 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
     });
 
     try {
-      final testData = {
-        'action': 'test_connection',
-        'timestamp': DateTime.now().toIso8601String(),
-        'client_version': '1.0.0',
-      };
+      // Create a test person to send to the server
+      final testPerson = Person(
+        id: _apiClient.generateId(),
+        name: 'Test User',
+        email: 'test@example.com',
+      );
 
-      final success = await _apiClient.sendDataToCiServer(testData);
+      final createdPerson = await _apiClient.createPerson(testPerson);
 
       setState(() {
         _isLoading = false;
-        _lastMessage = success 
-          ? 'Test data sent successfully!' 
-          : 'Failed to send test data';
+        _lastMessage =
+            'Test data sent successfully! '
+            'Created person: ${createdPerson.name}';
       });
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() {
         _isLoading = false;
         _lastMessage = 'Error sending data: $e';
@@ -95,32 +93,32 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
 
     try {
       final messages = <String>[];
-      
+
       // Test People API
       final people = await _apiClient.getPeople(limit: 3);
-      messages.add('People API: ${people != null ? "Success (${people.length} items)" : "Failed"}');
-      
+      messages.add('People API: Success (${people.length} items)');
+
       // Test Places API
       final places = await _apiClient.getPlaces(limit: 3);
-      messages.add('Places API: ${places != null ? "Success (${places.length} items)" : "Failed"}');
-      
+      messages.add('Places API: Success (${places.length} items)');
+
       // Test Content API
       final content = await _apiClient.getContent(limit: 3);
-      messages.add('Content API: ${content != null ? "Success (${content.length} items)" : "Failed"}');
-      
+      messages.add('Content API: Success (${content.length} items)');
+
       // Test Contact API
-      final contact = await _apiClient.getContact(limit: 3);
-      messages.add('Contact API: ${contact != null ? "Success (${contact.length} items)" : "Failed"}');
-      
+      final contacts = await _apiClient.getContacts(limit: 3);
+      messages.add('Contact API: Success (${contacts.length} items)');
+
       // Test Things API
       final things = await _apiClient.getThings(limit: 3);
-      messages.add('Things API: ${things != null ? "Success (${things.length} items)" : "Failed"}');
+      messages.add('Things API: Success (${things.length} items)');
 
       setState(() {
         _isLoading = false;
         _lastMessage = messages.join('\n');
       });
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() {
         _isLoading = false;
         _lastMessage = 'Error testing endpoints: $e';
@@ -136,13 +134,13 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -203,7 +201,7 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
             const SizedBox(height: 16),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -227,7 +225,7 @@ class _CiConnectionPageState extends State<CiConnectionPage> {
                     else
                       SelectableText(
                         _lastMessage,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'monospace',
                           fontSize: 12,
                         ),

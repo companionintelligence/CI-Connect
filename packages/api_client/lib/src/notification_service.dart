@@ -14,23 +14,23 @@ class NotificationData {
     this.timestamp,
   });
 
-  final String id;
-  final String title;
-  final String body;
-  final Map<String, dynamic> data;
-  final DateTime? timestamp;
-
   factory NotificationData.fromJson(Map<String, dynamic> json) {
     return NotificationData(
       id: json['id'] as String,
       title: json['title'] as String,
       body: json['body'] as String,
       data: json['data'] as Map<String, dynamic>? ?? {},
-      timestamp: json['timestamp'] != null 
+      timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : null,
     );
   }
+
+  final String id;
+  final String title;
+  final String body;
+  final Map<String, dynamic> data;
+  final DateTime? timestamp;
 
   Map<String, dynamic> toJson() {
     return {
@@ -53,7 +53,7 @@ class NotificationService {
   }
 
   final Dio _dio;
-  
+
   /// Stream of notification messages
   final _messageController = StreamController<NotificationData>.broadcast();
   Stream<NotificationData> get messageStream => _messageController.stream;
@@ -69,18 +69,20 @@ class NotificationService {
     try {
       // Generate a unique device identifier for this session
       _deviceToken = DateTime.now().millisecondsSinceEpoch.toString();
-      
+
       // Register device with the server
       await _registerDevice();
-      
-      // Start polling for notifications (in a real implementation, 
+
+      // Start polling for notifications (in a real implementation,
       // this might use WebSockets or Server-Sent Events)
       _startPolling();
-      
+
       log('NotificationService initialized successfully');
     } catch (e, stackTrace) {
-      log('Failed to initialize NotificationService: $e', 
-          stackTrace: stackTrace);
+      log(
+        'Failed to initialize NotificationService: $e',
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -88,11 +90,14 @@ class NotificationService {
   /// Register this device with the CI-Server for notifications
   Future<void> _registerDevice() async {
     try {
-      await _dio.post('/contact', data: {
-        'device_token': _deviceToken,
-        'platform': defaultTargetPlatform.name,
-        'registered_at': DateTime.now().toIso8601String(),
-      });
+      await _dio.post(
+        '/contact',
+        data: {
+          'device_token': _deviceToken,
+          'platform': defaultTargetPlatform.name,
+          'registered_at': DateTime.now().toIso8601String(),
+        },
+      );
       log('Device registered with CI-Server');
     } catch (e) {
       log('Failed to register device: $e');
@@ -114,19 +119,23 @@ class NotificationService {
   /// Poll the server for new notifications
   Future<void> _pollForNotifications() async {
     try {
-      final response = await _dio.get('/content/notifications', queryParameters: {
-        'device_token': _deviceToken,
-        'since': DateTime.now()
-            .subtract(const Duration(minutes: 1))
-            .toIso8601String(),
-      });
+      final response = await _dio.get(
+        '/content/notifications',
+        queryParameters: {
+          'device_token': _deviceToken,
+          'since': DateTime.now()
+              .subtract(const Duration(minutes: 1))
+              .toIso8601String(),
+        },
+      );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> notifications = response.data['notifications'] ?? [];
-        
+        final notifications =
+            (response.data['notifications'] as List<dynamic>?) ?? [];
+
         for (final notificationJson in notifications) {
           final notification = NotificationData.fromJson(
-            notificationJson as Map<String, dynamic>
+            notificationJson as Map<String, dynamic>,
           );
           _messageController.add(notification);
           log('Received notification: ${notification.title}');
@@ -154,7 +163,9 @@ class NotificationService {
     try {
       final response = await _dio.get('/people');
       if (response.statusCode == 200 && response.data != null) {
-        return List<Map<String, dynamic>>.from(response.data['people'] ?? []);
+        return List<Map<String, dynamic>>.from(
+          (response.data['people'] as List<dynamic>?) ?? [],
+        );
       }
       return [];
     } catch (e) {
@@ -168,7 +179,9 @@ class NotificationService {
     try {
       final response = await _dio.get('/places');
       if (response.statusCode == 200 && response.data != null) {
-        return List<Map<String, dynamic>>.from(response.data['places'] ?? []);
+        return List<Map<String, dynamic>>.from(
+          (response.data['places'] as List<dynamic>?) ?? [],
+        );
       }
       return [];
     } catch (e) {
@@ -177,12 +190,14 @@ class NotificationService {
     }
   }
 
-  /// Get things from CI-Server (example of using the things endpoint)  
+  /// Get things from CI-Server (example of using the things endpoint)
   Future<List<Map<String, dynamic>>> getThings() async {
     try {
       final response = await _dio.get('/things');
       if (response.statusCode == 200 && response.data != null) {
-        return List<Map<String, dynamic>>.from(response.data['things'] ?? []);
+        return List<Map<String, dynamic>>.from(
+          (response.data['things'] as List<dynamic>?) ?? [],
+        );
       }
       return [];
     } catch (e) {
@@ -194,10 +209,13 @@ class NotificationService {
   /// Subscribe to notifications for a specific topic/category
   Future<void> subscribeToTopic(String topic) async {
     try {
-      await _dio.post('/contact/subscribe', data: {
-        'device_token': _deviceToken,
-        'topic': topic,
-      });
+      await _dio.post(
+        '/contact/subscribe',
+        data: {
+          'device_token': _deviceToken,
+          'topic': topic,
+        },
+      );
       log('Subscribed to topic: $topic');
     } catch (e) {
       log('Failed to subscribe to topic $topic: $e');
@@ -207,10 +225,13 @@ class NotificationService {
   /// Unsubscribe from notifications for a specific topic/category
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
-      await _dio.delete('/contact/subscribe', data: {
-        'device_token': _deviceToken,
-        'topic': topic,
-      });
+      await _dio.delete(
+        '/contact/subscribe',
+        data: {
+          'device_token': _deviceToken,
+          'topic': topic,
+        },
+      );
       log('Unsubscribed from topic: $topic');
     } catch (e) {
       log('Failed to unsubscribe from topic $topic: $e');

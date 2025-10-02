@@ -1,4 +1,4 @@
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
 
 // Placeholder DAO files - these can be expanded based on specific requirements
 

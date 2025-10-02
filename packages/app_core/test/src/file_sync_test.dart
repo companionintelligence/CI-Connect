@@ -1,12 +1,12 @@
 // Not required for test files
 // ignore_for_file: prefer_const_constructors
 
+import 'package:api_client/api_client.dart' as api_client;
 import 'package:app_core/app_core.dart';
-import 'package:api_client/api_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockApiClient extends Mock implements ApiClient {}
+class MockApiClient extends Mock implements api_client.ApiClient {}
 
 void main() {
   group('FileSyncService', () {
@@ -72,7 +72,7 @@ void main() {
           failedFiles: 2,
           errors: ['Error 1', 'Error 2'],
         );
-        
+
         expect(result.successRate, equals(80.0));
         expect(result.isSuccess, isFalse);
       });
@@ -84,7 +84,7 @@ void main() {
           failedFiles: 0,
           errors: [],
         );
-        
+
         expect(result.successRate, equals(100.0));
         expect(result.isSuccess, isTrue);
       });
@@ -96,7 +96,7 @@ void main() {
           failedFiles: 0,
           errors: [],
         );
-        
+
         expect(result.successRate, equals(0.0));
         expect(result.isSuccess, isTrue);
       });

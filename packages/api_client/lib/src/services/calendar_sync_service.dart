@@ -90,7 +90,7 @@ class CalendarSyncService {
       );
 
       return response
-          .map((json) => Calendar.fromJson(json))
+          .map(Calendar.fromJson)
           .toList();
     } catch (e) {
       throw CalendarSyncException('Failed to fetch calendars: $e');
@@ -113,7 +113,7 @@ class CalendarSyncService {
       );
 
       return response
-          .map((json) => CalendarEvent.fromJson(json))
+          .map(CalendarEvent.fromJson)
           .toList();
     } catch (e) {
       throw CalendarSyncException('Failed to fetch calendar events: $e');
@@ -238,7 +238,6 @@ class CalendarSyncService {
         location: 'Conference Room A',
         startDateTime: now.add(const Duration(days: 1)),
         endDateTime: now.add(const Duration(days: 1, hours: 1)),
-        isAllDay: false,
         attendees: [
           const CalendarAttendee(
             email: 'attendee@example.com',

@@ -1,5 +1,5 @@
-import '../models/models.dart';
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/database/models/models.dart';
 
 /// {@template file_sync_dao}
 /// Data Access Object for FileSyncRecord entities.
@@ -97,25 +97,25 @@ class FileSyncDao extends BaseDao<FileSyncRecord> {
     final db = await database;
     
     final totalResult = await db.rawQuery('SELECT COUNT(*) as count FROM $tableName');
-    final total = totalResult.first['count'] as int;
+    final total = totalResult.first['count']! as int;
     
     final syncedResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE sync_status = ?',
       [FileSyncStatus.synced.name],
     );
-    final synced = syncedResult.first['count'] as int;
+    final synced = syncedResult.first['count']! as int;
     
     final pendingResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE sync_status = ?',
       [FileSyncStatus.pending.name],
     );
-    final pending = pendingResult.first['count'] as int;
+    final pending = pendingResult.first['count']! as int;
     
     final failedResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE sync_status = ?',
       [FileSyncStatus.failed.name],
     );
-    final failed = failedResult.first['count'] as int;
+    final failed = failedResult.first['count']! as int;
 
     return {
       'total': total,
@@ -132,7 +132,7 @@ class FileSyncDao extends BaseDao<FileSyncRecord> {
     final cutoffDate = DateTime.now().subtract(olderThan);
     
     final db = await database;
-    return await db.delete(
+    return db.delete(
       tableName,
       where: 'synced_at < ? AND sync_status = ?',
       whereArgs: [cutoffDate.toIso8601String(), FileSyncStatus.synced.name],
@@ -142,7 +142,7 @@ class FileSyncDao extends BaseDao<FileSyncRecord> {
   /// Resets failed syncs for retry
   Future<int> resetFailedSyncs() async {
     final db = await database;
-    return await db.update(
+    return db.update(
       tableName,
       {
         'sync_status': FileSyncStatus.pending.name,

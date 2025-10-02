@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import '../ci_server_client.dart';
-import '../models/models.dart';
+import 'package:api_client/src/ci_server_client.dart';
+import 'package:api_client/src/models/models.dart';
 
 /// {@template contacts_sync_service}
 /// Service for syncing contact health data with CI-Server API
@@ -145,11 +145,11 @@ class ContactsSyncService {
       );
 
       if (existingSyncData == null) {
-        throw ContactSyncException('No existing sync data found for contact');
+        throw const ContactSyncException('No existing sync data found for contact');
       }
 
       if (existingSyncData.retryCount >= maxRetries) {
-        throw ContactSyncException('Maximum retry attempts exceeded');
+        throw const ContactSyncException('Maximum retry attempts exceeded');
       }
 
       // Retry the sync
@@ -168,7 +168,7 @@ class ContactsSyncService {
     required String studioId,
     required String contactId,
   }) async {
-    return await _ciServerClient.getContactSyncData(
+    return _ciServerClient.getContactSyncData(
       studioId: studioId,
       contactId: contactId,
     );

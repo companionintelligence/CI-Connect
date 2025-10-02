@@ -17,7 +17,7 @@ class Person {
       name: json['name'] as String,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
-      createdAt: json['createdAt'] != null 
+      createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String)
           : null,
       updatedAt: json['updatedAt'] != null
@@ -43,6 +43,25 @@ class Person {
 
   /// Last update timestamp
   final DateTime? updatedAt;
+
+  /// Creates a copy of this person with the given fields replaced.
+  Person copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Person(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   /// Converts this instance to a JSON map.
   Map<String, dynamic> toJson() {

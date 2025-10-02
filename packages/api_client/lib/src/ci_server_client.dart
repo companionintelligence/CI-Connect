@@ -1,8 +1,7 @@
 import 'dart:async';
 
+import 'package:api_client/src/models/models.dart';
 import 'package:dio/dio.dart';
-
-import 'models/models.dart';
 
 /// {@template ci_server_client}
 /// HTTP client for communicating with CI-Server API
@@ -119,7 +118,7 @@ class CIServerClient {
       
       if (response.statusCode == 200) {
         final data = response.data;
-        List<dynamic> healthDataList = [];
+        var healthDataList = <dynamic>[];
         
         if (data is List) {
           healthDataList = data;
@@ -193,7 +192,7 @@ class CIServerClient {
       
       if (response.statusCode == 200) {
         final data = response.data;
-        List<dynamic> syncDataList = [];
+        var syncDataList = <dynamic>[];
         
         if (data is List) {
           syncDataList = data;

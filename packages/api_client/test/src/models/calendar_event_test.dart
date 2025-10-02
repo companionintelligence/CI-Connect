@@ -11,7 +11,6 @@ void main() {
       location: 'Conference Room A',
       startDateTime: DateTime.parse('2024-01-01T10:00:00Z'),
       endDateTime: DateTime.parse('2024-01-01T11:00:00Z'),
-      isAllDay: false,
       attendees: [
         const CalendarAttendee(
           email: 'test@example.com',
@@ -158,7 +157,6 @@ void main() {
           location: 'Conference Room A',
           startDateTime: DateTime.parse('2024-01-01T10:00:00Z'),
           endDateTime: DateTime.parse('2024-01-01T11:00:00Z'),
-          isAllDay: false,
           attendees: [
             const CalendarAttendee(
               email: 'test@example.com',
@@ -198,7 +196,6 @@ void main() {
       email: 'test@example.com',
       name: 'Test User',
       responseStatus: 'accepted',
-      isOptional: false,
     );
 
     group('fromJson', () {
@@ -283,7 +280,6 @@ void main() {
           email: 'test@example.com',
           name: 'Test User',
           responseStatus: 'accepted',
-          isOptional: false,
         );
 
         expect(attendee, equals(other));

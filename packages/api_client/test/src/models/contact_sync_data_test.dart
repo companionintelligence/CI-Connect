@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:api_client/api_client.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ContactSyncData', () {
@@ -86,7 +86,6 @@ void main() {
         studioId: 'studio_456',
         lastSyncTime: DateTime.now(),
         healthData: const [],
-        syncStatus: ContactSyncStatus.pending,
       );
 
       final copy = original.copyWith(

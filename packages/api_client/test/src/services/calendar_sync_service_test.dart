@@ -43,7 +43,7 @@ void main() {
             .thenThrow(const CIServerApiException('Server error'));
 
         expect(
-          () async => await service.syncAllCalendars(studioId: 'studio-123'),
+          () async => service.syncAllCalendars(studioId: 'studio-123'),
           throwsA(isA<CalendarSyncException>()),
         );
       });
@@ -78,7 +78,7 @@ void main() {
             .thenThrow(const CIServerApiException('Server error'));
 
         expect(
-          () async => await service.syncCalendar(
+          () async => service.syncCalendar(
             studioId: 'studio-123',
             calendarId: 'cal-123',
           ),
@@ -131,7 +131,7 @@ void main() {
         )).thenThrow(const CIServerApiException('Server error'));
 
         expect(
-          () async => await service.getCalendars(studioId: 'studio-123'),
+          () async => service.getCalendars(studioId: 'studio-123'),
           throwsA(isA<CalendarSyncException>()),
         );
       });
@@ -189,7 +189,7 @@ void main() {
         )).thenThrow(const CIServerApiException('Server error'));
 
         expect(
-          () async => await service.getCalendarEvents(
+          () async => service.getCalendarEvents(
             studioId: 'studio-123',
             calendarId: 'cal-123',
           ),

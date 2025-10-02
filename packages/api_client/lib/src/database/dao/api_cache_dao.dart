@@ -1,6 +1,7 @@
 import 'dart:convert';
-import '../models/models.dart';
-import 'base_dao.dart';
+
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/database/models/models.dart';
 
 /// {@template api_cache_dao}
 /// Data Access Object for API cache entries.
@@ -81,7 +82,7 @@ class ApiCacheDao extends BaseDao<ApiCacheEntry> {
     final db = await database;
     final now = DateTime.now().toIso8601String();
     
-    return await db.delete(
+    return db.delete(
       tableName,
       where: 'expires_at < ?',
       whereArgs: [now],
@@ -91,7 +92,7 @@ class ApiCacheDao extends BaseDao<ApiCacheEntry> {
   /// Clears cache for specific endpoint pattern
   Future<int> clearCacheForEndpoint(String endpointPattern) async {
     final db = await database;
-    return await db.delete(
+    return db.delete(
       tableName,
       where: 'endpoint LIKE ?',
       whereArgs: ['%$endpointPattern%'],
@@ -104,7 +105,7 @@ class ApiCacheDao extends BaseDao<ApiCacheEntry> {
     
     // Total entries
     final totalResult = await db.rawQuery('SELECT COUNT(*) as count FROM $tableName');
-    final total = totalResult.first['count'] as int;
+    final total = totalResult.first['count']! as int;
     
     // Valid entries (not expired)
     final now = DateTime.now().toIso8601String();
@@ -112,7 +113,7 @@ class ApiCacheDao extends BaseDao<ApiCacheEntry> {
       'SELECT COUNT(*) as count FROM $tableName WHERE expires_at > ?',
       [now],
     );
-    final valid = validResult.first['count'] as int;
+    final valid = validResult.first['count']! as int;
     
     // Cache size (approximate)
     final sizeResult = await db.rawQuery('SELECT SUM(LENGTH(data)) as size FROM $tableName');
@@ -177,7 +178,7 @@ class ApiCacheDao extends BaseDao<ApiCacheEntry> {
   String _generateCacheKey(String endpoint) {
     // Simple hash-like key generation
     // In a production app, you might want to use a proper hash function
-    return endpoint.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_').toLowerCase();
+    return endpoint.replaceAll(RegExp('[^a-zA-Z0-9]'), '_').toLowerCase();
   }
 
   /// Warms up cache with frequently used endpoints

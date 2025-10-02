@@ -25,7 +25,7 @@ class SyncResult {
 
   /// Success percentage
   double get successRate {
-    if (totalFiles == 0) return 0.0;
+    if (totalFiles == 0) return 0;
     return (syncedFiles / totalFiles) * 100;
   }
 

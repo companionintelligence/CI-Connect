@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ApiClient', () {
     test('can be instantiated', () {
-      final apiClient = ApiClient(baseUrl: 'https://api.example.com');
+      final apiClient = ApiClient(ciServerBaseUrl: 'https://api.example.com');
       expect(apiClient, isNotNull);
     });
   });
@@ -16,7 +16,7 @@ void main() {
         name: 'John Doe',
         email: 'john@example.com',
         phone: '+1234567890',
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
       );
 
@@ -32,7 +32,7 @@ void main() {
     });
 
     test('Place can be serialized to/from JSON', () {
-      final place = Place(
+      const place = Place(
         id: '1',
         name: 'Central Park',
         address: 'New York, NY',
@@ -53,7 +53,7 @@ void main() {
     });
 
     test('Content can be serialized to/from JSON', () {
-      final content = Content(
+      const content = Content(
         id: '1',
         name: 'document.pdf',
         type: 'document',
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('Contact can be serialized to/from JSON', () {
-      final contact = Contact(
+      const contact = Contact(
         id: '1',
         name: 'Jane Smith',
         email: 'jane@company.com',
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('Thing can be serialized to/from JSON', () {
-      final thing = Thing(
+      const thing = Thing(
         id: '1',
         name: 'Smart Device',
         category: 'electronics',
@@ -118,7 +118,5 @@ void main() {
       expect(fromJson.name, equals(thing.name));
       expect(fromJson.category, equals(thing.category));
     });
-  });
-}    });
   });
 }

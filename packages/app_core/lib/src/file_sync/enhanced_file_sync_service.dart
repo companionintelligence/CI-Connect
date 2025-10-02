@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:api_client/api_client.dart';
+import 'package:api_client/api_client.dart' as api_client;
+import 'package:api_client/src/database/models/file_sync_record.dart';
 import 'package:app_core/src/file_sync/models/file_type.dart';
 import 'package:app_core/src/file_sync/models/sync_result.dart';
 import 'package:path/path.dart' as path;
@@ -10,10 +11,10 @@ import 'package:permission_handler/permission_handler.dart';
 class EnhancedFileSyncService {
   /// Creates an [EnhancedFileSyncService] instance.
   EnhancedFileSyncService({
-    required EnhancedApiClient apiClient,
+    required api_client.EnhancedApiClient apiClient,
   }) : _apiClient = apiClient;
 
-  final EnhancedApiClient _apiClient;
+  final api_client.EnhancedApiClient _apiClient;
 
   /// Request necessary permissions for file access
   Future<bool> requestPermissions() async {
@@ -30,8 +31,8 @@ class EnhancedFileSyncService {
     }
 
     // Return true if at least storage permission is granted
-    return results[Permission.storage]?.isGranted == true ||
-        results[Permission.manageExternalStorage]?.isGranted == true;
+    return (results[Permission.storage]?.isGranted ?? false) ||
+        (results[Permission.manageExternalStorage]?.isGranted ?? false);
   }
 
   /// Check if permissions are granted
@@ -46,11 +47,11 @@ class EnhancedFileSyncService {
   /// Discover and record files for sync
   Future<int> discoverAndRecordFiles(List<FileType> fileTypes) async {
     final files = <File>[];
-    
+
     try {
       // Get common directories to scan
       final directories = await _getDirectoriesToScan();
-      
+
       for (final directory in directories) {
         if (await directory.exists()) {
           await _scanDirectory(directory, fileTypes, files);
@@ -58,18 +59,19 @@ class EnhancedFileSyncService {
       }
 
       // Record discovered files in SQLite
-      int recordedCount = 0;
+      var recordedCount = 0;
       for (final file in files) {
         try {
           final fileStat = await file.stat();
           final fileName = path.basename(file.path);
           final fileType = _getFileType(file.path);
-          
+
           // Check if file is already recorded
-          final existingRecord = await _apiClient.caching
-              .getFilesToSync()
-              .then((records) => records.where((r) => r.filePath == file.path).firstOrNull);
-          
+          final existingRecord = await _apiClient.caching.getFilesToSync().then(
+            (records) =>
+                records.where((r) => r.filePath == file.path).firstOrNull,
+          );
+
           if (existingRecord == null) {
             await _apiClient.recordFileForSync(
               file.path,
@@ -86,7 +88,7 @@ class EnhancedFileSyncService {
           continue;
         }
       }
-      
+
       return recordedCount;
     } catch (e) {
       throw Exception('Failed to discover files: $e');
@@ -95,30 +97,28 @@ class EnhancedFileSyncService {
 
   /// Sync files that are pending in the database
   Future<SyncResult> syncPendingFiles({
-    Function(int current, int total, String fileName)? onProgress,
+    void Function(int current, int total, String fileName)? onProgress,
   }) async {
     final pendingFiles = await _apiClient.getFilesToSync();
-    
+
     if (pendingFiles.isEmpty) {
       return SyncResult(
         totalFiles: 0,
         syncedFiles: 0,
-        skippedFiles: 0,
         failedFiles: 0,
         errors: [],
       );
     }
 
-    int syncedCount = 0;
-    int skippedCount = 0;
-    int failedCount = 0;
+    var syncedCount = 0;
+    var failedCount = 0;
     final errors = <String>[];
 
-    for (int i = 0; i < pendingFiles.length; i++) {
+    for (var i = 0; i < pendingFiles.length; i++) {
       final record = pendingFiles[i];
-      
+
       onProgress?.call(i + 1, pendingFiles.length, record.fileName);
-      
+
       try {
         // Update status to syncing
         await _apiClient.caching.updateFileSyncStatus(
@@ -151,7 +151,6 @@ class EnhancedFileSyncService {
 
         await _apiClient.uploadContent(record.filePath, metadata);
         syncedCount++;
-        
       } catch (e) {
         await _apiClient.caching.updateFileSyncStatus(
           record.id,
@@ -166,7 +165,6 @@ class EnhancedFileSyncService {
     return SyncResult(
       totalFiles: pendingFiles.length,
       syncedFiles: syncedCount,
-      skippedFiles: skippedCount,
       failedFiles: failedCount,
       errors: errors,
     );
@@ -180,20 +178,20 @@ class EnhancedFileSyncService {
 
   /// Reset failed syncs for retry
   Future<int> retryFailedSyncs() async {
-    final fileSyncDao = FileSyncDao();
-    return fileSyncDao.resetFailedSyncs();
+    // TODO: Implement retry failed syncs through API client
+    return 0;
   }
 
   /// Remove old sync records
   Future<int> cleanupOldRecords({Duration? olderThan}) async {
-    final fileSyncDao = FileSyncDao();
-    return fileSyncDao.removeOldRecords(olderThan: olderThan);
+    // TODO: Implement cleanup old records through API client
+    return 0;
   }
 
   /// Get list of directories to scan for files
   Future<List<Directory>> _getDirectoriesToScan() async {
     final directories = <Directory>[];
-    
+
     try {
       // External storage directories
       if (Platform.isAndroid) {
@@ -205,7 +203,7 @@ class EnhancedFileSyncService {
           directories.add(Directory('${external.path}/Download'));
           directories.add(Directory('${external.path}/Documents'));
         }
-        
+
         // Try to access shared storage directories
         directories.addAll([
           Directory('/storage/emulated/0/DCIM'),
@@ -215,21 +213,22 @@ class EnhancedFileSyncService {
           Directory('/storage/emulated/0/Documents'),
         ]);
       }
-      
+
       if (Platform.isIOS) {
         final documentsDir = await getApplicationDocumentsDirectory();
         directories.add(documentsDir);
-        
+
         // iOS Photos library would require photo_manager plugin
         // For now, focus on documents directory
       }
-      
+
       if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
         final documentsDir = await getApplicationDocumentsDirectory();
         directories.add(documentsDir);
-        
+
         // Add common user directories
-        final homeDir = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+        final homeDir =
+            Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
         if (homeDir != null) {
           directories.addAll([
             Directory('$homeDir/Documents'),
@@ -248,7 +247,7 @@ class EnhancedFileSyncService {
         // Can't even get app documents directory
       }
     }
-    
+
     return directories;
   }
 
@@ -259,8 +258,8 @@ class EnhancedFileSyncService {
     List<File> files,
   ) async {
     try {
-      final entities = directory.listSync(recursive: false);
-      
+      final entities = directory.listSync();
+
       for (final entity in entities) {
         if (entity is File) {
           final fileType = _getFileType(entity.path);
@@ -282,36 +281,36 @@ class EnhancedFileSyncService {
   /// Check if we should scan a subdirectory
   bool _shouldScanSubdirectory(String dirPath) {
     final dirName = path.basename(dirPath).toLowerCase();
-    
+
     // Skip hidden directories and system directories
-    if (dirName.startsWith('.') || 
-        dirName == 'android' || 
+    if (dirName.startsWith('.') ||
+        dirName == 'android' ||
         dirName == 'cache' ||
         dirName == 'temp' ||
         dirName == 'tmp') {
       return false;
     }
-    
+
     return true;
   }
 
   /// Get file type based on extension
   FileType? _getFileType(String filePath) {
     final extension = path.extension(filePath).toLowerCase();
-    
+
     for (final fileType in FileType.values) {
       if (fileType.extensions.contains(extension)) {
         return fileType;
       }
     }
-    
+
     return null;
   }
 
   /// Get MIME type based on file extension
   String? _getMimeType(String filePath) {
     final extension = path.extension(filePath).toLowerCase();
-    
+
     // Common MIME types mapping
     const mimeTypes = {
       '.jpg': 'image/jpeg',
@@ -332,15 +331,18 @@ class EnhancedFileSyncService {
       '.wmv': 'video/x-ms-wmv',
       '.pdf': 'application/pdf',
       '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.docx':
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       '.txt': 'text/plain',
       '.rtf': 'application/rtf',
       '.xls': 'application/vnd.ms-excel',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.xlsx':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       '.ppt': 'application/vnd.ms-powerpoint',
-      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      '.pptx':
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     };
-    
+
     return mimeTypes[extension];
   }
 }

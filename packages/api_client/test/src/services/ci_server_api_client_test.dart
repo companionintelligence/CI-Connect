@@ -1,5 +1,4 @@
 import 'package:api_client/api_client.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -36,7 +35,7 @@ void main() {
         expect(result, hasLength(2));
         expect(result[0]['id'], equals('1'));
         expect(result[1]['id'], equals('2'));
-        verify(() => mockDio.get('test-endpoint', queryParameters: null)).called(1);
+        verify(() => mockDio.get('test-endpoint')).called(1);
       });
 
       test('returns list from wrapped data response', () async {
@@ -101,7 +100,7 @@ void main() {
         ));
 
         expect(
-          () async => await client.getAll('test-endpoint'),
+          () async => client.getAll('test-endpoint'),
           throwsA(isA<CIServerApiException>()),
         );
       });
@@ -129,7 +128,7 @@ void main() {
         when(() => mockDio.get(any())).thenAnswer((_) async => mockResponse);
 
         expect(
-          () async => await client.getById('test-endpoint', '1'),
+          () async => client.getById('test-endpoint', '1'),
           throwsA(isA<CIServerApiException>()),
         );
       });
@@ -141,7 +140,7 @@ void main() {
         ));
 
         expect(
-          () async => await client.getById('test-endpoint', '1'),
+          () async => client.getById('test-endpoint', '1'),
           throwsA(isA<CIServerApiException>()),
         );
       });
@@ -174,7 +173,7 @@ void main() {
 
         final data = {'name': 'New Item'};
         expect(
-          () async => await client.create('test-endpoint', data),
+          () async => client.create('test-endpoint', data),
           throwsA(isA<CIServerApiException>()),
         );
       });
@@ -207,7 +206,7 @@ void main() {
 
         final data = {'name': 'Updated Item'};
         expect(
-          () async => await client.update('test-endpoint', '1', data),
+          () async => client.update('test-endpoint', '1', data),
           throwsA(isA<CIServerApiException>()),
         );
       });
@@ -230,7 +229,7 @@ void main() {
         ));
 
         expect(
-          () async => await client.delete('test-endpoint', '1'),
+          () async => client.delete('test-endpoint', '1'),
           throwsA(isA<CIServerApiException>()),
         );
       });

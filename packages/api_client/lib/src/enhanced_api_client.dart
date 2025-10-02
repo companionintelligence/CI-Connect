@@ -1,9 +1,8 @@
+import 'package:api_client/src/caching_service.dart';
+import 'package:api_client/src/database/database.dart';
+import 'package:api_client/src/models/models.dart';
+import 'package:api_client/src/notification_service.dart';
 import 'package:dio/dio.dart';
-import 'caching_service.dart';
-import 'database/database.dart';
-import 'models/models.dart';
-import 'notification_service.dart';
-import 'services/services.dart';
 
 /// {@template enhanced_api_client}
 /// Enhanced API Client with SQLite caching for CI-Server integration.
@@ -65,12 +64,12 @@ class EnhancedApiClient {
     Map<String, dynamic>? filters,
     bool forceRefresh = false,
   }) async {
-    final endpoint = 'people';
+    const endpoint = 'people';
     
     return _cachingService.cachedListApiCall<Person>(
       endpoint: endpoint,
       apiCall: () => _fetchPeopleFromApi(page: page, limit: limit, filters: filters),
-      fromJson: (json) => Person.fromJson(json),
+      fromJson: Person.fromJson,
       toJson: (person) => person.toJson(),
       forceRefresh: forceRefresh,
     );
@@ -121,12 +120,12 @@ class EnhancedApiClient {
     Map<String, dynamic>? filters,
     bool forceRefresh = false,
   }) async {
-    final endpoint = 'contacts';
+    const endpoint = 'contacts';
     
     return _cachingService.cachedListApiCall<Contact>(
       endpoint: endpoint,
       apiCall: () => _fetchContactsFromApi(page: page, limit: limit, filters: filters),
-      fromJson: (json) => Contact.fromJson(json),
+      fromJson: Contact.fromJson,
       toJson: (contact) => contact.toJson(),
       forceRefresh: forceRefresh,
     );
@@ -159,12 +158,12 @@ class EnhancedApiClient {
     Map<String, dynamic>? filters,
     bool forceRefresh = false,
   }) async {
-    final endpoint = 'content';
+    const endpoint = 'content';
     
     return _cachingService.cachedListApiCall<Content>(
       endpoint: endpoint,
       apiCall: () => _fetchContentFromApi(page: page, limit: limit, filters: filters),
-      fromJson: (json) => Content.fromJson(json),
+      fromJson: Content.fromJson,
       toJson: (content) => content.toJson(),
       forceRefresh: forceRefresh,
     );

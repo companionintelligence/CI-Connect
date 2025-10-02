@@ -1,5 +1,5 @@
+import 'package:api_client/src/database/database_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database_provider.dart';
 
 /// {@template base_dao}
 /// Base Data Access Object with common CRUD operations.
@@ -78,7 +78,7 @@ abstract class BaseDao<T> {
   Future<int> update(T entity) async {
     final db = await database;
     final map = toDatabaseMap(entity);
-    return await db.update(
+    return db.update(
       tableName,
       map,
       where: 'id = ?',
@@ -89,7 +89,7 @@ abstract class BaseDao<T> {
   /// Deletes an entity by ID
   Future<int> delete(String id) async {
     final db = await database;
-    return await db.delete(
+    return db.delete(
       tableName,
       where: 'id = ?',
       whereArgs: [id],
@@ -99,7 +99,7 @@ abstract class BaseDao<T> {
   /// Deletes all entities
   Future<int> deleteAll() async {
     final db = await database;
-    return await db.delete(tableName);
+    return db.delete(tableName);
   }
 
   /// Counts all entities

@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'database/database.dart';
-import 'models/models.dart';
+
+import 'package:api_client/src/database/database.dart';
+import 'package:api_client/src/models/models.dart';
 
 /// {@template caching_service}
 /// Service that provides SQLite-based caching for API responses.
@@ -113,7 +112,7 @@ class CachingService {
 
   /// Caches people data
   Future<void> cachePeople(List<Person> people) async {
-    final cachedPeople = people.map((p) => CachedPerson.fromPerson(p)).toList();
+    final cachedPeople = people.map(CachedPerson.fromPerson).toList();
     await _peopleDao.insertBatch(cachedPeople);
   }
 
@@ -125,7 +124,7 @@ class CachingService {
 
   /// Caches contacts data
   Future<void> cacheContacts(List<Contact> contacts) async {
-    final cachedContacts = contacts.map((c) => CachedContact.fromContact(c)).toList();
+    final cachedContacts = contacts.map(CachedContact.fromContact).toList();
     await _contactsDao.insertBatch(cachedContacts);
   }
 
@@ -137,7 +136,7 @@ class CachingService {
 
   /// Caches content data
   Future<void> cacheContent(List<Content> content) async {
-    final cachedContent = content.map((c) => CachedContent.fromContent(c)).toList();
+    final cachedContent = content.map(CachedContent.fromContent).toList();
     await _contentDao.insertBatch(cachedContent);
   }
 

@@ -1,5 +1,5 @@
-import '../models/models.dart';
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/database/models/models.dart';
 
 /// {@template notifications_dao}
 /// Data Access Object for NotificationRecord entities.
@@ -65,6 +65,6 @@ class NotificationsDao extends BaseDao<NotificationRecord> {
       'SELECT COUNT(*) FROM $tableName WHERE read = ?',
       [0],
     );
-    return Sqflite.firstIntValue(result) ?? 0;
+    return result.first['COUNT(*)'] as int? ?? 0;
   }
 }

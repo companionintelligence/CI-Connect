@@ -1,6 +1,5 @@
-import '../models/models.dart';
-import '../../models/models.dart';
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/models/models.dart';
 
 /// {@template contacts_dao}
 /// Data Access Object for Contact entities with caching support.
@@ -95,6 +94,21 @@ class CachedContact extends CachedEntity {
     super.isDirty,
   });
 
+  /// Creates from API Contact model
+  factory CachedContact.fromContact(Contact contact, {bool isDirty = false}) {
+    return CachedContact(
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      company: contact.company,
+      notes: contact.notes,
+      createdAt: contact.createdAt,
+      updatedAt: contact.updatedAt,
+      isDirty: isDirty,
+    );
+  }
+
   /// Full name of the contact
   final String name;
 
@@ -127,21 +141,6 @@ class CachedContact extends CachedEntity {
       notes: notes,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  /// Creates from API Contact model
-  factory CachedContact.fromContact(Contact contact, {bool isDirty = false}) {
-    return CachedContact(
-      id: contact.id,
-      name: contact.name,
-      email: contact.email,
-      phone: contact.phone,
-      company: contact.company,
-      notes: contact.notes,
-      createdAt: contact.createdAt,
-      updatedAt: contact.updatedAt,
-      isDirty: isDirty,
     );
   }
 

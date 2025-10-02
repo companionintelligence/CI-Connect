@@ -1,6 +1,5 @@
-import '../models/models.dart';
-import '../../models/models.dart';
-import 'base_dao.dart';
+import 'package:api_client/src/database/dao/base_dao.dart';
+import 'package:api_client/src/models/models.dart';
 
 /// {@template people_dao}
 /// Data Access Object for Person entities with caching support.
@@ -80,6 +79,19 @@ class CachedPerson extends CachedEntity {
     super.isDirty,
   });
 
+  /// Creates from API Person model
+  factory CachedPerson.fromPerson(Person person, {bool isDirty = false}) {
+    return CachedPerson(
+      id: person.id,
+      name: person.name,
+      email: person.email,
+      phone: person.phone,
+      createdAt: person.createdAt,
+      updatedAt: person.updatedAt,
+      isDirty: isDirty,
+    );
+  }
+
   /// Full name of the person
   final String name;
 
@@ -104,19 +116,6 @@ class CachedPerson extends CachedEntity {
       phone: phone,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  /// Creates from API Person model
-  factory CachedPerson.fromPerson(Person person, {bool isDirty = false}) {
-    return CachedPerson(
-      id: person.id,
-      name: person.name,
-      email: person.email,
-      phone: person.phone,
-      createdAt: person.createdAt,
-      updatedAt: person.updatedAt,
-      isDirty: isDirty,
     );
   }
 

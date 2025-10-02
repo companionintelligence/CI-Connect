@@ -1,22 +1,24 @@
 /// Example usage of the CI-Server API client for contacts sync
-/// 
+///
 /// This replaces the Firebase-based implementation with HTTP API calls
 /// to the CI-Server endpoints.
+library;
 
-import 'package:dio/dio.dart';
-import '../api_client.dart';
+import 'package:api_client/api_client.dart';
 
 /// Example function showing how to set up and use the contacts sync system
 Future<void> exampleUsage() async {
   // Initialize the API client with your CI-Server base URL
   final apiClient = ApiClient(
-    baseUrl: 'https://your-ci-server.com/api',
-    apiKey: 'your-api-key-here', // Optional
+    ciServerBaseUrl: 'https://your-ci-server.com/api',
   );
 
   // Create the contacts sync service
   final syncService = ContactsSyncService(
-    ciServerClient: apiClient.ciServerClient,
+    ciServerClient: CIServerClient(
+      dio: Dio(),
+      baseUrl: 'https://your-ci-server.com/api',
+    ),
   );
 
   // Create the repository
@@ -51,7 +53,7 @@ Future<void> exampleUsage() async {
       contactId: 'contact_123',
       healthData: healthData,
     );
-    
+
     print('Sync completed: ${syncResult.syncStatus}');
 
     // Check sync status
@@ -59,7 +61,7 @@ Future<void> exampleUsage() async {
       studioId: 'studio_456',
       contactId: 'contact_123',
     );
-    
+
     if (status != null) {
       print('Current sync status: ${status.syncStatus}');
       print('Last sync time: ${status.lastSyncTime}');
@@ -69,18 +71,16 @@ Future<void> exampleUsage() async {
     final allSyncResults = await repository.syncAllContactsHealthData(
       studioId: 'studio_456',
     );
-    
+
     print('Synced ${allSyncResults.length} contacts');
-    
   } catch (e) {
     print('Sync failed: $e');
-    
+
     // Retry failed sync
     try {
       await repository.retrySyncContactHealthData(
         studioId: 'studio_456',
         contactId: 'contact_123',
-        maxRetries: 3,
       );
     } catch (retryError) {
       print('Retry also failed: $retryError');
